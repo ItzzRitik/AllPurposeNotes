@@ -274,7 +274,7 @@ public class login extends AppCompatActivity {
         forget_pass.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sign_dialog.setVisibility(View.VISIBLE);
+                sign_dialog.setVisibility(View.VISIBLE);vibrate(20);
                 FirebaseAuth.getInstance().sendPasswordResetEmail(email.getText().toString())
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
@@ -296,7 +296,7 @@ public class login extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 scaleY(48,login_div);scaleY(0,forget_pass);email_reset.setVisibility(View.GONE);email.setEnabled(true);
-                pass.setText("");con_pass.setText("");signin.setText(getString(R.string.next));setButtonEnabled(true);logs=0;
+                pass.setText("");con_pass.setText("");signin.setText(getString(R.string.next));setButtonEnabled(true);logs=0;vibrate(20);
                 email.setVisibility(View.VISIBLE);pass.setVisibility(View.GONE);con_pass.setVisibility(View.GONE);
             }
         });
@@ -321,6 +321,7 @@ public class login extends AppCompatActivity {
         dob_chooser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                vibrate(20);
                 DatePickerDialog dd = new DatePickerDialog(login.this,
                         new DatePickerDialog.OnDateSetListener() {
                             @Override
@@ -371,11 +372,10 @@ public class login extends AppCompatActivity {
                     matrix.postScale(-1, 1,result.getWidth()/2, result.getHeight()/2);
                     result= Bitmap.createBitmap(result, 0, 0, result.getWidth(), result.getHeight(), matrix, true);
                 }
-                result.compress(Bitmap.CompressFormat.JPEG, 100, new ByteArrayOutputStream());
+                vibrate(20);result.compress(Bitmap.CompressFormat.JPEG, 100, new ByteArrayOutputStream());
                 String path = MediaStore.Images.Media.insertImage(login.this.getContentResolver(), result, "Title", null);
                 UCrop.of(Uri.parse(path),Uri.parse(profile_url)).withOptions(options).withAspectRatio(1,1)
                         .withMaxResultSize(maxWidth, maxHeight).start(login.this);
-                ((Vibrator) login.this.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(35);
 
             }
         });
@@ -385,6 +385,7 @@ public class login extends AppCompatActivity {
         allow_camera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                vibrate(20);
                 ActivityCompat.requestPermissions(login.this,
                         new String[]{android.Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.RECORD_AUDIO}, 1);
             }
@@ -395,6 +396,7 @@ public class login extends AppCompatActivity {
         flash.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                vibrate(20);
                 if(!isflash){cameraView.setFlash(CameraKit.Constants.FLASH_ON);isflash=true;flash.setImageResource(R.drawable.flash_on);}
                 else {cameraView.setFlash(CameraKit.Constants.FLASH_OFF);isflash=false;flash.setImageResource(R.drawable.flash_off);}
             }
@@ -403,6 +405,7 @@ public class login extends AppCompatActivity {
         camera_flip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                vibrate(20);
                 if(!isBack){cameraView.setFacing(CameraKit.Constants.FACING_BACK);isBack=true;}
                 else {cameraView.setFacing(CameraKit.Constants.FACING_FRONT);isBack=false;}
             }
@@ -411,9 +414,9 @@ public class login extends AppCompatActivity {
         click.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                int cy=(int)(click.getY() + click.getHeight() / 2);galaryOn=true;
+                int cy=(int)(click.getY() + click.getHeight() / 2);galaryOn=true;vibrate(35);
                 animator = ViewAnimationUtils.createCircularReveal(galary,backG.getRight()/2,cy,0,backG.getHeight());
-                animator.setInterpolator(new AccelerateInterpolator());animator.setDuration(400);galary.setVisibility(View.VISIBLE);
+                animator.setInterpolator(new AccelerateInterpolator());animator.setDuration(300);galary.setVisibility(View.VISIBLE);
                 Animation anim = AnimationUtils.loadAnimation(login.this, R.anim.fade_out);
                 galary.startAnimation(anim);
                 animator.start();
@@ -436,7 +439,7 @@ public class login extends AppCompatActivity {
         profile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                camera_pane.setVisibility(View.VISIBLE);camOn=true;
+                camera_pane.setVisibility(View.VISIBLE);camOn=true;vibrate(20);
                 int cy=(int)(profile.getY() + profile.getHeight() / 2);
                 final Animator animator = ViewAnimationUtils.createCircularReveal(camera_pane,backG.getRight()/2,cy,0, backG.getHeight()*141/100);
                 animator.setInterpolator(new AccelerateInterpolator());animator.setDuration(500);
@@ -472,6 +475,7 @@ public class login extends AppCompatActivity {
         gender_swap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                vibrate(20);
                 if(gender_text.getText().equals(getString(R.string.he)))
                 {
                     gender_text.setText(getString(R.string.she));
@@ -496,7 +500,7 @@ public class login extends AppCompatActivity {
                         break;
                     case MotionEvent.ACTION_UP:
                         signin.setBackgroundResource(R.drawable.signin);signin.setTextColor(Color.parseColor("#02723B"));
-                        performSignIn();
+                        performSignIn();vibrate(20);
                         break;
                 }
                 return true;
@@ -832,6 +836,7 @@ public class login extends AppCompatActivity {
     {return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, num, getResources().getDisplayMetrics());}
     public float pxtodp(float num)
     {return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, num, getResources().getDisplayMetrics());}
+    public void vibrate(int ms){((Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(ms);}
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
@@ -860,7 +865,7 @@ public class login extends AppCompatActivity {
                 final Uri resultUri = UCrop.getOutput(intent);
                 Bitmap bitmap= MediaStore.Images.Media.getBitmap(login.this.getContentResolver(), resultUri);
                 profile.setImageBitmap(bitmap);isDP_added=true;
-                closeCam();
+                closeCam();new File(resultUri.toString()).delete();
                 new Handler().postDelayed(new Runnable() {@Override public void run()
                 {
                     ToolTip.Builder builder = new ToolTip.Builder(login.this, profile,parentPanel, getString(R.string.osm_dp), ToolTip.POSITION_ABOVE);
@@ -868,14 +873,14 @@ public class login extends AppCompatActivity {
                     builder.setTextColor(getColor(R.color.profile_text));
                     builder.setGravity(ToolTip.GRAVITY_CENTER);
                     builder.setTextSize(15);
-                    toolTip.show(builder.build());
+                    toolTip.show(builder.build());vibrate(35);
                 }},500);
                 new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(profile);}},3000);
             }
             catch (Exception e){}
         } else if (resultcode == UCrop.RESULT_ERROR) {
             final Throwable cropError = UCrop.getError(intent);
-            Toast.makeText(login.this,getString(R.string.error), Toast.LENGTH_LONG).show();
+            Toast.makeText(login.this,getString(R.string.error)+cropError, Toast.LENGTH_LONG).show();
         }
     }
 }

@@ -10,13 +10,11 @@
         android:id="@+id/cam"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        camerakit:ckFacing="back"
-        camerakit:ckFlash="off"
+        android:clickable="true"
+        camerakit:ckFacing="front"
         camerakit:ckFocus="continuous"
-        camerakit:ckMethod="standard"
+        camerakit:ckMethod="speed"
         camerakit:ckZoom="pinch"
-        camerakit:ckPermissions="strict"
-        camerakit:ckCropOutput="true"
         camerakit:ckJpegQuality="100"
         android:adjustViewBounds="true" />
     <RelativeLayout

@@ -19,6 +19,7 @@ import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -351,8 +352,6 @@ public class login extends AppCompatActivity {
         gender_text.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/vdub.ttf"));
 
         cameraView=(CameraView)findViewById(R.id.cam);
-        cameraView.setZoom(CameraKit.Constants.ZOOM_PINCH);
-        cameraView.setFacing(CameraKit.Constants.FACING_FRONT);
         options=new UCrop.Options();
         options.setCircleDimmedLayer(true);
         options.setShowCropFrame(false);
@@ -366,13 +365,17 @@ public class login extends AppCompatActivity {
             public void onPictureTaken(final byte[] picture) {
                 super.onPictureTaken(picture);
                 Bitmap result = BitmapFactory.decodeByteArray(picture, 0, picture.length);
-                Matrix matrix = new Matrix();
-                matrix.postScale(-1, 1,result.getWidth()/2, result.getHeight()/2);
-                result= Bitmap.createBitmap(result, 0, 0, result.getWidth(), result.getHeight(), matrix, true);
+                if(!isBack)
+                {
+                    Matrix matrix = new Matrix();
+                    matrix.postScale(-1, 1,result.getWidth()/2, result.getHeight()/2);
+                    result= Bitmap.createBitmap(result, 0, 0, result.getWidth(), result.getHeight(), matrix, true);
+                }
                 result.compress(Bitmap.CompressFormat.JPEG, 100, new ByteArrayOutputStream());
                 String path = MediaStore.Images.Media.insertImage(login.this.getContentResolver(), result, "Title", null);
                 UCrop.of(Uri.parse(path),Uri.parse(profile_url)).withOptions(options).withAspectRatio(1,1)
                         .withMaxResultSize(maxWidth, maxHeight).start(login.this);
+                ((Vibrator) login.this.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(35);
 
             }
         });

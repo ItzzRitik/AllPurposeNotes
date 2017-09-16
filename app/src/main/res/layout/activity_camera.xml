@@ -44,7 +44,7 @@
             android:layout_height="match_parent"
             android:visibility="gone"
             android:id="@+id/crop_view"
-            android:background="#fff">
+            android:background="#000">
         </RelativeLayout>
     </RelativeLayout>
     <RelativeLayout

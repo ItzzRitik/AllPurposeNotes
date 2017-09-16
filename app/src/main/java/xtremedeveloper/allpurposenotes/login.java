@@ -5,7 +5,6 @@ import android.animation.ValueAnimator;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -16,7 +15,6 @@ import android.icu.util.Calendar;
 import android.net.Uri;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.speech.RecognizerIntent;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -60,20 +58,15 @@ import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
 
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.regex.Pattern;
-
-import static xtremedeveloper.allpurposenotes.R.id.backG;
-import static xtremedeveloper.allpurposenotes.R.id.bottom;
-import static xtremedeveloper.allpurposenotes.R.id.right;
 
 public class login extends AppCompatActivity {
 
     TextView signin,gender_text,verify_l1,verify_l2,verify_l4;
     ImageView ico_splash,dob_chooser,gender_swap,click;
     RelativeLayout login_div,logo_div,splash_cover,email_reset,sign_dialog,forget_pass,gender,permission_camera;
-    RelativeLayout camera_pane,parentPanel,click_pane,galary;
+    RelativeLayout camera_pane,parentPanel,click_pane,galary,crop_view;
     Animation anim;
     boolean isDP_added =false,camStarted=false,camOn=false,galaryOn=false;
     EditText email,pass,con_pass,f_name,l_name,dob;

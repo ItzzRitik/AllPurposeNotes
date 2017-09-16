@@ -45,6 +45,10 @@
             android:visibility="gone"
             android:id="@+id/crop_view"
             android:background="#000">
+            <com.adamstyrc.cookiecutter.CookieCutterImageView
+                android:id="@+id/crop"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
         </RelativeLayout>
     </RelativeLayout>
     <RelativeLayout

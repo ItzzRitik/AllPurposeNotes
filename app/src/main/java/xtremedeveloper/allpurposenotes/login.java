@@ -43,6 +43,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.adamstyrc.cookiecutter.CookieCutterImageView;
 import com.flurgle.camerakit.CameraListener;
 import com.flurgle.camerakit.CameraView;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -79,6 +80,7 @@ public class login extends AppCompatActivity {
     CameraView cameraView;
     ToolTipsManager toolTip;
     Animator animator;
+    CookieCutterImageView crop;
     @Override
     protected void onResume() {
         super.onResume();
@@ -362,6 +364,8 @@ public class login extends AppCompatActivity {
         });
         click_pane=(RelativeLayout)findViewById(R.id.click_pane);
         galary=(RelativeLayout) findViewById(R.id.galary);
+        crop_view=(RelativeLayout) findViewById(R.id.crop_view);
+        crop=(CookieCutterImageView)findViewById(R.id.crop);
         click=(ImageView)findViewById(R.id.click);
         click.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -378,6 +382,12 @@ public class login extends AppCompatActivity {
                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), 1);
                 overridePendingTransition(R.anim.slide_up,0);
                 return false;
+            }
+        });
+        click.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                cameraView.captureImage();
             }
         });
         camera_pane=(RelativeLayout)findViewById(R.id.camera_pane);
@@ -793,6 +803,8 @@ public class login extends AppCompatActivity {
             {
                 Uri imageUri = intent.getData();
                 Bitmap bitmap= MediaStore.Images.Media.getBitmap(login.this.getContentResolver(), imageUri);
+                crop_view.setVisibility(View.VISIBLE);
+                crop.setImageBitmap(bitmap);
             }
             catch(Exception e){}
         }

@@ -39,6 +39,13 @@
             android:id="@+id/galary"
             android:background="#fff">
         </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:id="@+id/crop_view"
+            android:background="#fff">
+        </RelativeLayout>
     </RelativeLayout>
     <RelativeLayout
         android:layout_width="match_parent"

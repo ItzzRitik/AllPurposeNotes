@@ -30,9 +30,30 @@
             android:layout_centerHorizontal="true"
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="30dp"
-            android:contentDescription="I'm Sad"
-            android:visibility="gone"
+            android:contentDescription="Click"
+            android:visibility="invisible"
             android:id="@+id/click"/>
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/flash_off"
+            android:layout_alignStart="@+id/click"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="45dp"
+            android:layout_marginLeft="-120dp"
+            android:contentDescription="flash"
+            android:id="@+id/flash"/>
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/camera_flip"
+            android:layout_alignEnd="@+id/click"
+            android:layout_alignParentBottom="true"
+            android:padding="10dp"
+            android:layout_marginBottom="47dp"
+            android:layout_marginRight="-112dp"
+            android:contentDescription="camera_flip"
+            android:id="@+id/camera_flip"/>
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"

@@ -1,14 +1,18 @@
 package xtremedeveloper.allpurposenotes;
 
+import android.*;
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.app.DatePickerDialog;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Typeface;
 import android.graphics.drawable.shapes.OvalShape;
 import android.icu.text.SimpleDateFormat;
@@ -44,6 +48,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.flurgle.camerakit.CameraKit;
 import com.flurgle.camerakit.CameraListener;
 import com.flurgle.camerakit.CameraView;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -59,22 +64,23 @@ import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
 import com.yalantis.ucrop.UCrop;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.regex.Pattern;
 
 import static android.R.attr.maxHeight;
 import static android.R.attr.maxWidth;
-import static android.R.attr.shape;
 
 public class login extends AppCompatActivity {
 
     TextView signin,gender_text,verify_l1,verify_l2,verify_l4;
-    ImageView ico_splash,dob_chooser,gender_swap,click;
+    ImageView ico_splash,dob_chooser,gender_swap,click,flash,camera_flip;
     RelativeLayout login_div,logo_div,splash_cover,email_reset,sign_dialog,forget_pass,gender,permission_camera;
     RelativeLayout camera_pane,parentPanel,click_pane,galary;
     Animation anim;
-    boolean isDP_added =false,camStarted=false,camOn=false,galaryOn=false;
+    boolean isDP_added =false,camStarted=false,camOn=false,galaryOn=false,isflash=false,isBack=false;
     EditText email,pass,con_pass,f_name,l_name,dob;
     int logs=0;
     TrianglifyView backG;
@@ -85,17 +91,24 @@ public class login extends AppCompatActivity {
     CameraView cameraView;
     ToolTipsManager toolTip;
     Animator animator;
+    String profile_url="";
+    UCrop.Options options;
     @Override
     protected void onResume() {
         super.onResume();
         if (ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
         {if(!camStarted){cameraView.start();camStarted=true;}}
+        new Handler().postDelayed(new Runnable() {@Override public void run()
+        {
+            click.setVisibility(View.VISIBLE);
+            Animation anim = AnimationUtils.loadAnimation(login.this, R.anim.click_grow);click.startAnimation(anim);
+        }},500);
     }
 
     @Override
     protected void onPause() {
         if(camStarted){cameraView.stop();camStarted=false;}
-        super.onPause();
+        super.onPause();click.setVisibility(View.INVISIBLE);
     }
     @Override
     public void onBackPressed() {
@@ -338,23 +351,29 @@ public class login extends AppCompatActivity {
         gender_text.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/vdub.ttf"));
 
         cameraView=(CameraView)findViewById(R.id.cam);
+        cameraView.setZoom(CameraKit.Constants.ZOOM_PINCH);
+        cameraView.setFacing(CameraKit.Constants.FACING_FRONT);
+        options=new UCrop.Options();
+        options.setCircleDimmedLayer(true);
+        options.setShowCropFrame(false);
+        options.setCropGridColumnCount(0);
+        options.setCropGridRowCount(0);
+        options.setToolbarColor(ContextCompat.getColor(login.this, R.color.colorPrimary));
+        options.setStatusBarColor(ContextCompat.getColor(login.this, R.color.colorPrimary));
+        options.setActiveWidgetColor(ContextCompat.getColor(login.this, R.color.colorPrimary));
         cameraView.setCameraListener(new CameraListener() {
             @Override
             public void onPictureTaken(final byte[] picture) {
                 super.onPictureTaken(picture);
                 Bitmap result = BitmapFactory.decodeByteArray(picture, 0, picture.length);
-                profile.setImageBitmap(result);isDP_added=true;
-                closeCam();
-                new Handler().postDelayed(new Runnable() {@Override public void run()
-                {
-                    ToolTip.Builder builder = new ToolTip.Builder(login.this, profile,parentPanel, getString(R.string.osm_dp), ToolTip.POSITION_ABOVE);
-                    builder.setBackgroundColor(getColor(R.color.profile));
-                    builder.setTextColor(getColor(R.color.profile_text));
-                    builder.setGravity(ToolTip.GRAVITY_CENTER);
-                    builder.setTextSize(15);
-                    toolTip.show(builder.build());
-                }},500);
-                new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(profile);}},3000);
+                Matrix matrix = new Matrix();
+                matrix.postScale(-1, 1,result.getWidth()/2, result.getHeight()/2);
+                result= Bitmap.createBitmap(result, 0, 0, result.getWidth(), result.getHeight(), matrix, true);
+                result.compress(Bitmap.CompressFormat.JPEG, 100, new ByteArrayOutputStream());
+                String path = MediaStore.Images.Media.insertImage(login.this.getContentResolver(), result, "Title", null);
+                UCrop.of(Uri.parse(path),Uri.parse(profile_url)).withOptions(options).withAspectRatio(1,1)
+                        .withMaxResultSize(maxWidth, maxHeight).start(login.this);
+
             }
         });
 
@@ -363,11 +382,28 @@ public class login extends AppCompatActivity {
         allow_camera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ActivityCompat.requestPermissions(login.this, new String[]{android.Manifest.permission.CAMERA}, 1);
+                ActivityCompat.requestPermissions(login.this,
+                        new String[]{android.Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.RECORD_AUDIO}, 1);
             }
         });
         click_pane=(RelativeLayout)findViewById(R.id.click_pane);
         galary=(RelativeLayout) findViewById(R.id.galary);
+        flash=(ImageView)findViewById(R.id.flash);
+        flash.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!isflash){cameraView.setFlash(CameraKit.Constants.FLASH_ON);isflash=true;flash.setImageResource(R.drawable.flash_on);}
+                else {cameraView.setFlash(CameraKit.Constants.FLASH_OFF);isflash=false;flash.setImageResource(R.drawable.flash_off);}
+            }
+        });
+        camera_flip=(ImageView)findViewById(R.id.camera_flip);
+        camera_flip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!isBack){cameraView.setFacing(CameraKit.Constants.FACING_BACK);isBack=true;}
+                else {cameraView.setFacing(CameraKit.Constants.FACING_FRONT);isBack=false;}
+            }
+        });
         click=(ImageView)findViewById(R.id.click);
         click.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -408,8 +444,13 @@ public class login extends AppCompatActivity {
                     public void onAnimationEnd(Animator animation)
                     {
                         permission_camera.setVisibility(View.VISIBLE);
-                        if (ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
-                        {permission_camera.setVisibility(View.GONE);if(!camStarted){cameraView.start();camStarted=true;}}
+                        if (ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                                ContextCompat.checkSelfPermission(login.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED &&
+                                ContextCompat.checkSelfPermission(login.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+                        {
+                            permission_camera.setVisibility(View.GONE);if(!camStarted){cameraView.start();camStarted=true;}
+                        }
+                        else {permission_camera.setVisibility(View.VISIBLE);}
                     }
                     @Override
                     public void onAnimationCancel(Animator animation) {}
@@ -419,8 +460,6 @@ public class login extends AppCompatActivity {
                 new Handler().postDelayed(new Runnable() {@Override public void run()
                 {
                     click.setVisibility(View.VISIBLE);
-                    RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) click.getLayoutParams();
-                    params.topMargin = (int) (click_pane.getHeight()-dptopx(115));click.setLayoutParams(params);
                     Animation anim = AnimationUtils.loadAnimation(login.this, R.anim.click_grow);click.startAnimation(anim);
                 }},500);
             }
@@ -619,6 +658,8 @@ public class login extends AppCompatActivity {
         {
             Toast.makeText(this, "Sign Up Completed", Toast.LENGTH_SHORT).show();
         }
+
+        profile_url=new File(new ContextWrapper(getApplicationContext()).getDir("imageDir", Context.MODE_PRIVATE),"profile.jpg").getAbsolutePath();
     }
     public void closeCam()
     {
@@ -628,9 +669,9 @@ public class login extends AppCompatActivity {
         animator.setInterpolator(new DecelerateInterpolator());animator.setDuration(500);
         animator.addListener(new Animator.AnimatorListener() {
             @Override
-            public void onAnimationStart(Animator animation) {click.setVisibility(View.GONE);}
+            public void onAnimationStart(Animator animation) {camOn=false;click.setVisibility(View.INVISIBLE);}
             @Override
-            public void onAnimationEnd(Animator animation) {camera_pane.setVisibility(View.GONE);camOn=false;}
+            public void onAnimationEnd(Animator animation) {camera_pane.setVisibility(View.GONE);click.setVisibility(View.INVISIBLE);}
             @Override
             public void onAnimationCancel(Animator animation) {}
             @Override
@@ -793,7 +834,14 @@ public class login extends AppCompatActivity {
         switch (requestCode) {
             case 1: {
                 if(grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                {permission_camera.setVisibility(View.GONE);}
+                {
+                    if(ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                            ContextCompat.checkSelfPermission(login.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED &&
+                            ContextCompat.checkSelfPermission(login.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+                    {
+                        permission_camera.setVisibility(View.GONE);
+                    }
+                }
             }
         }
     }
@@ -801,24 +849,30 @@ public class login extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultcode, Intent intent) {
         super.onActivityResult(requestCode, resultcode, intent);
         if (resultcode == RESULT_OK && requestCode == 1) {
-            try
-            {
-                Uri imageUri = intent.getData();
-                //Bitmap bitmap= MediaStore.Images.Media.getBitmap(login.this.getContentResolver(), imageUri);
-                UCrop.Options options=new UCrop.Options();
-                options.setCircleDimmedLayer(true);
-                UCrop.of(imageUri, imageUri)
-                        .withOptions(options)
-                        .withAspectRatio(16, 9)
-                        .withMaxResultSize(maxWidth, maxHeight)
-                        .start(login.this);
-            }
-            catch(Exception e){}
+            UCrop.of(intent.getData(),Uri.parse(profile_url)).withOptions(options).withAspectRatio(1,1)
+                    .withMaxResultSize(maxWidth, maxHeight).start(login.this);
         }
         if (resultcode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
-            final Uri resultUri = UCrop.getOutput(intent);
+            try {
+                final Uri resultUri = UCrop.getOutput(intent);
+                Bitmap bitmap= MediaStore.Images.Media.getBitmap(login.this.getContentResolver(), resultUri);
+                profile.setImageBitmap(bitmap);isDP_added=true;
+                closeCam();
+                new Handler().postDelayed(new Runnable() {@Override public void run()
+                {
+                    ToolTip.Builder builder = new ToolTip.Builder(login.this, profile,parentPanel, getString(R.string.osm_dp), ToolTip.POSITION_ABOVE);
+                    builder.setBackgroundColor(getColor(R.color.profile));
+                    builder.setTextColor(getColor(R.color.profile_text));
+                    builder.setGravity(ToolTip.GRAVITY_CENTER);
+                    builder.setTextSize(15);
+                    toolTip.show(builder.build());
+                }},500);
+                new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(profile);}},3000);
+            }
+            catch (Exception e){}
         } else if (resultcode == UCrop.RESULT_ERROR) {
             final Throwable cropError = UCrop.getError(intent);
+            Toast.makeText(login.this,getString(R.string.error), Toast.LENGTH_LONG).show();
         }
     }
 }

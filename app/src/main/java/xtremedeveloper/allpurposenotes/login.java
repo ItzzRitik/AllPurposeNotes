@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.shapes.OvalShape;
 import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;
 import android.net.Uri;
@@ -43,7 +44,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.adamstyrc.cookiecutter.CookieCutterImageView;
 import com.flurgle.camerakit.CameraListener;
 import com.flurgle.camerakit.CameraView;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -57,17 +57,22 @@ import com.sdsmdg.kd.trianglify.models.Palette;
 import com.sdsmdg.kd.trianglify.views.TrianglifyView;
 import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
+import com.yalantis.ucrop.UCrop;
 
 import java.text.ParseException;
 import java.util.Date;
 import java.util.regex.Pattern;
+
+import static android.R.attr.maxHeight;
+import static android.R.attr.maxWidth;
+import static android.R.attr.shape;
 
 public class login extends AppCompatActivity {
 
     TextView signin,gender_text,verify_l1,verify_l2,verify_l4;
     ImageView ico_splash,dob_chooser,gender_swap,click;
     RelativeLayout login_div,logo_div,splash_cover,email_reset,sign_dialog,forget_pass,gender,permission_camera;
-    RelativeLayout camera_pane,parentPanel,click_pane,galary,crop_view;
+    RelativeLayout camera_pane,parentPanel,click_pane,galary;
     Animation anim;
     boolean isDP_added =false,camStarted=false,camOn=false,galaryOn=false;
     EditText email,pass,con_pass,f_name,l_name,dob;
@@ -80,7 +85,6 @@ public class login extends AppCompatActivity {
     CameraView cameraView;
     ToolTipsManager toolTip;
     Animator animator;
-    CookieCutterImageView crop;
     @Override
     protected void onResume() {
         super.onResume();
@@ -364,8 +368,6 @@ public class login extends AppCompatActivity {
         });
         click_pane=(RelativeLayout)findViewById(R.id.click_pane);
         galary=(RelativeLayout) findViewById(R.id.galary);
-        crop_view=(RelativeLayout) findViewById(R.id.crop_view);
-        crop=(CookieCutterImageView)findViewById(R.id.crop);
         click=(ImageView)findViewById(R.id.click);
         click.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -802,11 +804,21 @@ public class login extends AppCompatActivity {
             try
             {
                 Uri imageUri = intent.getData();
-                Bitmap bitmap= MediaStore.Images.Media.getBitmap(login.this.getContentResolver(), imageUri);
-                crop_view.setVisibility(View.VISIBLE);
-                crop.setImageBitmap(bitmap);
+                //Bitmap bitmap= MediaStore.Images.Media.getBitmap(login.this.getContentResolver(), imageUri);
+                UCrop.Options options=new UCrop.Options();
+                options.setCircleDimmedLayer(true);
+                UCrop.of(imageUri, imageUri)
+                        .withOptions(options)
+                        .withAspectRatio(16, 9)
+                        .withMaxResultSize(maxWidth, maxHeight)
+                        .start(login.this);
             }
             catch(Exception e){}
+        }
+        if (resultcode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
+            final Uri resultUri = UCrop.getOutput(intent);
+        } else if (resultcode == UCrop.RESULT_ERROR) {
+            final Throwable cropError = UCrop.getError(intent);
         }
     }
 }

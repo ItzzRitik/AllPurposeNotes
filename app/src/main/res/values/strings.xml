@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">All Purpose Notes</string>
+    <string name="fname">First Name</string>
+    <string name="lname">Last Name</string>
+    <string name="email">Email</string>
+    <string name="pass">Password</string>
+    <string name="con_pass">Confirm Password</string>
+    <string name="error">Oops! Got an Error</string>
+    <string name="he">HE</string>
+    <string name="she">SHE</string>
+    <string name="next">NEXT</string>
+    <string name="signin">SIGN IN</string>
+    <string name="signup">SIGN UP</string>
+    <string name="check">CHECK</string>
+    <string name="verified">Verified</string>
+    <string name="pass_reset">Check Your Email\nTo Continue Password Recovery</string>
+    <string name="osm_dp">Wohhh!! Looks Awesome</string>
+    <string name="blind">I\'m Blind\nPlease Provide Camera Permission</string>
+    <string name="forgot_pass">Forgot Password ?</string>
+    <string name="dob">Date of Birth (DD/MM/YYYY)</string>
+    <string name="verify1">Verification mail sent to your email address</string>
+    <string name="verify2">Press Check Button After Clicking On\nVerification Link Sent To Your Email Address</string>
+    <string name="verify_done">Great!\nAccount Verified</string>
+    <string name="verify_fail">Oops!\nAccount Not Verified</string>
+    <string name="add_dp">Add Your Profile Picture</string>
+    <string name="select_gender">Select Your Gender Here</string>
+    <string name="resend">Resending verification email.</string>
+    <string name="allow_camera">Allow Access</string>
+    <string name="failed_send">Failed to send verification email.</string>
+    <string name="didnt_recieve">Didn\'t Receive a mail?, Resend !</string>
+    <string name="error_resend">Error Sending Verification Mail</string>
+</resources>

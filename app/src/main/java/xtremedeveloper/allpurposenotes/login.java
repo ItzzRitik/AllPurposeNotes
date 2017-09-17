@@ -55,11 +55,16 @@ import com.flurgle.camerakit.CameraKit;
 import com.flurgle.camerakit.CameraListener;
 import com.flurgle.camerakit.CameraView;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.sdsmdg.kd.trianglify.models.Palette;
 import com.sdsmdg.kd.trianglify.views.TrianglifyView;
@@ -92,6 +97,7 @@ public class login extends AppCompatActivity {
     int logs=0;
     TrianglifyView backG;
     private FirebaseAuth auth;
+    private FirebaseStorage storage;
     View divider3,divider4,divider5;
     CircularImageView profile;
     Button allow_camera;
@@ -100,6 +106,7 @@ public class login extends AppCompatActivity {
     Animator animator;
     String profile_url="",profile_path="";
     UCrop.Options options;
+    Bitmap profile_dp=null;
     @Override
     protected void onResume() {
         super.onResume();
@@ -668,10 +675,39 @@ public class login extends AppCompatActivity {
         }
         else if(logs==4)
         {
-            Toast.makeText(this, "Sign Up Completed", Toast.LENGTH_SHORT).show();
+            profile.setDrawingCacheEnabled(true);
+            Bitmap bmp=profile.getDrawingCache();
+            String path=uploadFile(bmp).getPath();
+            Toast.makeText(this, path, Toast.LENGTH_SHORT).show();
         }
 
         profile_url=new File(new ContextWrapper(getApplicationContext()).getDir("imageDir", Context.MODE_PRIVATE),"profile.jpg").getAbsolutePath();
+    }
+    public Uri uploadFile(Bitmap bitmap) {
+        Uri downloadUrl=null;
+        storage = FirebaseStorage.getInstance();
+        StorageReference storageRef = storage.getReferenceFromUrl("gs://allpurposenotes-a3eb6.appspot.com");
+        StorageReference mountainsRef = storageRef.child(auth.getCurrentUser().getUid()+".jpg");
+        StorageReference mountainImagesRef = storageRef.child("users/"+auth.getCurrentUser().getUid()+".jpg");
+        mountainsRef.getName().equals(mountainImagesRef.getName());
+        mountainsRef.getPath().equals(mountainImagesRef.getPath());
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] data = baos.toByteArray();
+
+        UploadTask uploadTask = mountainsRef.putBytes(data);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {}
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Uri downloadUrl = taskSnapshot.getMetadata().getDownloadUrl();
+                f_name.setText(downloadUrl.getPath());
+            }
+        });
+        return downloadUrl;
     }
     public void closeCam()
     {
@@ -869,7 +905,7 @@ public class login extends AppCompatActivity {
             try {
                 final Uri resultUri = UCrop.getOutput(intent);
                 Bitmap bitmap= MediaStore.Images.Media.getBitmap(login.this.getContentResolver(), resultUri);
-                profile.setImageBitmap(bitmap);isDP_added=true;
+                profile.setImageBitmap(bitmap);profile_dp=bitmap;isDP_added=true;
                 closeCam();
                 new Handler().postDelayed(new Runnable() {@Override public void run()
                 {
@@ -881,16 +917,14 @@ public class login extends AppCompatActivity {
                     toolTip.show(builder.build());vibrate(35);
                 }},500);
                 new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(profile);}},3000);
+                new File(getRealPathFromURI(login.this,Uri.parse(profile_path))).delete();
             }
             catch (Exception e){}
-            if(new File(getRealPathFromURI(login.this,Uri.parse(profile_path))).delete())
-                Toast.makeText(login.this, "Deleted", Toast.LENGTH_SHORT).show();
         }
         else if (resultcode == UCrop.RESULT_ERROR) {
             final Throwable cropError = UCrop.getError(intent);
             Toast.makeText(login.this,getString(R.string.error)+cropError, Toast.LENGTH_LONG).show();
-            if(new File(getRealPathFromURI(login.this,Uri.parse(profile_path))).delete())
-                Toast.makeText(login.this, "Deleted", Toast.LENGTH_SHORT).show();
+            new File(getRealPathFromURI(login.this,Uri.parse(profile_path))).delete();
         }
     }
 

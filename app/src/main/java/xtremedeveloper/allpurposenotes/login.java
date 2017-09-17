@@ -3,6 +3,7 @@ package xtremedeveloper.allpurposenotes;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -42,6 +43,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -79,6 +81,7 @@ import com.yalantis.ucrop.UCrop;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.text.ParseException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.regex.Pattern;
 
@@ -92,7 +95,7 @@ public class login extends AppCompatActivity {
     RelativeLayout login_div,logo_div,splash_cover,email_reset,sign_dialog,forget_pass,gender,permission_camera;
     RelativeLayout camera_pane,parentPanel,click_pane,galary;
     Animation anim;
-    boolean isDP_added =false,camStarted=false,camOn=false,galaryOn=false,isflash=false,isBack=false;
+    boolean isDP_added =false,camStarted=false,camOn=false,galaryOn=false,isflash=false,isBack=false,profile_lp=false;
     EditText email,pass,con_pass,f_name,l_name,dob;
     int logs=0;
     TrianglifyView backG;
@@ -335,8 +338,8 @@ public class login extends AppCompatActivity {
         dob_chooser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                vibrate(20);completeSignUp(profile_dp);
-                /*DatePickerDialog dd = new DatePickerDialog(login.this,
+                vibrate(20);
+                DatePickerDialog dd = new DatePickerDialog(login.this,
                         new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker view, int year,
@@ -350,7 +353,7 @@ public class login extends AppCompatActivity {
                                 } catch (Exception ex) {}
                             }
                         }, 2000,  Calendar.getInstance().get(Calendar.MONTH),  Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
-                dd.show();*/
+                dd.show();
             }
         });
 
@@ -454,35 +457,50 @@ public class login extends AppCompatActivity {
         profile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                camera_pane.setVisibility(View.VISIBLE);camOn=true;vibrate(20);
-                int cy=(int)(profile.getY() + profile.getHeight() / 2);
-                final Animator animator = ViewAnimationUtils.createCircularReveal(camera_pane,backG.getRight()/2,cy,0, backG.getHeight()*141/100);
-                animator.setInterpolator(new AccelerateInterpolator());animator.setDuration(500);
-                animator.addListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {}
-                    @Override
-                    public void onAnimationEnd(Animator animation)
-                    {
-                        permission_camera.setVisibility(View.VISIBLE);
-                        if (ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
-                                ContextCompat.checkSelfPermission(login.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED &&
-                                ContextCompat.checkSelfPermission(login.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
-                        {
-                            permission_camera.setVisibility(View.GONE);if(!camStarted){cameraView.start();camStarted=true;}
-                        }
-                        else {permission_camera.setVisibility(View.VISIBLE);}
-                    }
-                    @Override
-                    public void onAnimationCancel(Animator animation) {}
-                    @Override
-                    public void onAnimationRepeat(Animator animation) {}
-                });animator.start();
-                new Handler().postDelayed(new Runnable() {@Override public void run()
+                if(profile_lp) {profile_lp=false;}
+                else
                 {
-                    click.setVisibility(View.VISIBLE);
-                    Animation anim = AnimationUtils.loadAnimation(login.this, R.anim.click_grow);click.startAnimation(anim);
-                }},500);
+                    camera_pane.setVisibility(View.VISIBLE);permission_camera.setVisibility(View.VISIBLE);camOn=true;vibrate(20);
+                    int cy=(int)(profile.getY() + profile.getHeight() / 2);
+                    final Animator animator = ViewAnimationUtils.createCircularReveal(camera_pane,backG.getRight()/2,cy,0, backG.getHeight()*141/100);
+                    animator.setInterpolator(new AccelerateInterpolator());animator.setDuration(500);animator.start();
+                    if (ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                            ContextCompat.checkSelfPermission(login.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED &&
+                            ContextCompat.checkSelfPermission(login.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+                    {
+                        permission_camera.setVisibility(View.GONE);if(!camStarted){cameraView.start();camStarted=true;}
+                    }
+                    new Handler().postDelayed(new Runnable() {@Override public void run()
+                    {
+                        click.setVisibility(View.VISIBLE);
+                        Animation anim = AnimationUtils.loadAnimation(login.this, R.anim.click_grow);click.startAnimation(anim);
+                    }},500);
+                    if(ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                            ContextCompat.checkSelfPermission(login.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED &&
+                            ContextCompat.checkSelfPermission(login.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+                    {
+                        new Handler().postDelayed(new Runnable() {@Override public void run()
+                        {
+                            ToolTip.Builder builder = new ToolTip.Builder(login.this, click,camera_pane, getString(R.string.open_galary), ToolTip.POSITION_ABOVE);
+                            builder.setBackgroundColor(getColor(R.color.profile));
+                            builder.setTextColor(getColor(R.color.profile_text));
+                            builder.setGravity(ToolTip.GRAVITY_CENTER);
+                            builder.setTextSize(15);
+                            toolTip.show(builder.build());
+                        }},1300);
+                        new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(click);}},4000);
+                    }
+                }
+            }
+        });
+        profile.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                vibrate(35);profile_lp=true;
+                if(gender_text.getText().equals(getString(R.string.he))) {profile.setImageDrawable(getDrawable(R.mipmap.boy));}
+                else if(gender_text.getText().equals(getString(R.string.she))) {profile.setImageDrawable(getDrawable(R.mipmap.girl));}
+                isDP_added=false;profile_dp=null;
+                return false;
             }
         });
 
@@ -678,6 +696,7 @@ public class login extends AppCompatActivity {
         }
         else if(logs==4)
         {
+            completeSignUp(profile_dp);
         }
 
         profile_url=new File(new ContextWrapper(getApplicationContext()).getDir("imageDir", Context.MODE_PRIVATE),"profile.jpg").getAbsolutePath();
@@ -741,11 +760,9 @@ public class login extends AppCompatActivity {
     }
     public void upload_data()
     {
-        fdb= FirebaseDatabase.getInstance().getReference("users");
+        fdb= FirebaseDatabase.getInstance().getReference("user_details");
         fdb.child(auth.getCurrentUser().getUid())
                 .setValue(new user_details(f_name.getText().toString(),l_name.getText().toString(),gender_text.getText().toString(),dob.getText().toString()));
-        dp_Loader.setVisibility(View.GONE);
-
         fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -755,6 +772,7 @@ public class login extends AppCompatActivity {
             @Override
             public void onCancelled(DatabaseError error) {}
         });
+        dp_Loader.setVisibility(View.GONE);
     }
     public void closeCam()
     {
@@ -936,6 +954,16 @@ public class login extends AppCompatActivity {
                             ContextCompat.checkSelfPermission(login.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
                     {
                         permission_camera.setVisibility(View.GONE);
+                        new Handler().postDelayed(new Runnable() {@Override public void run()
+                        {
+                            ToolTip.Builder builder = new ToolTip.Builder(login.this, click,camera_pane, getString(R.string.open_galary), ToolTip.POSITION_ABOVE);
+                            builder.setBackgroundColor(getColor(R.color.profile));
+                            builder.setTextColor(getColor(R.color.profile_text));
+                            builder.setGravity(ToolTip.GRAVITY_CENTER);
+                            builder.setTextSize(15);
+                            toolTip.show(builder.build());
+                        }},1300);
+                        new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(click);}},4000);
                     }
                 }
             }
@@ -956,14 +984,14 @@ public class login extends AppCompatActivity {
                 closeCam();
                 new Handler().postDelayed(new Runnable() {@Override public void run()
                 {
-                    ToolTip.Builder builder = new ToolTip.Builder(login.this, profile,parentPanel, getString(R.string.osm_dp), ToolTip.POSITION_ABOVE);
+                    ToolTip.Builder builder = new ToolTip.Builder(login.this, profile,parentPanel, getString(R.string.remove_pic), ToolTip.POSITION_ABOVE);
                     builder.setBackgroundColor(getColor(R.color.profile));
                     builder.setTextColor(getColor(R.color.profile_text));
                     builder.setGravity(ToolTip.GRAVITY_CENTER);
                     builder.setTextSize(15);
                     toolTip.show(builder.build());vibrate(35);
-                }},500);
-                new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(profile);}},3000);
+                }},1000);
+                new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(profile);}},3500);
                 new File(getRealPathFromURI(login.this,Uri.parse(profile_path))).delete();
             }
             catch (Exception e){}

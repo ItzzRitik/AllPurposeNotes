@@ -28,6 +28,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
+import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -38,6 +39,7 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -58,6 +60,9 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
+import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -82,14 +87,14 @@ public class login extends AppCompatActivity {
     TextView signin,gender_text,verify_l1,verify_l2,verify_l4;
     ImageView ico_splash,dob_chooser,gender_swap,click,flash,camera_flip;
     RelativeLayout login_div,logo_div,splash_cover,email_reset,sign_dialog,forget_pass,gender,permission_camera;
-    RelativeLayout camera_pane,parentPanel,click_pane,galary,dp_Loader;
+    RelativeLayout camera_pane,parentPanel,click_pane,galary;
     Animation anim;
     boolean isDP_added =false,camStarted=false,camOn=false,galaryOn=false,isflash=false,isBack=false;
     EditText email,pass,con_pass,f_name,l_name,dob;
     int logs=0;
     TrianglifyView backG;
-    private FirebaseAuth auth;
-    private FirebaseStorage storage;
+    FirebaseAuth auth;
+    DatabaseReference fdb;
     View divider3,divider4,divider5;
     CircularImageView profile;
     Button allow_camera;
@@ -99,7 +104,7 @@ public class login extends AppCompatActivity {
     String profile_url="",profile_path="";
     UCrop.Options options;
     Bitmap profile_dp=null;
-    ProgressBar uploadDP;
+    ProgressBar dp_Loader;
     @Override
     protected void onResume() {
         super.onResume();
@@ -327,8 +332,7 @@ public class login extends AppCompatActivity {
         dob_chooser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                vibrate(20);
-                if(profile_dp!=null){String path=uploadFile(profile_dp);}
+                vibrate(20);completeSignUp(profile_dp);
                 /*DatePickerDialog dd = new DatePickerDialog(login.this,
                         new DatePickerDialog.OnDateSetListener() {
                             @Override
@@ -441,9 +445,8 @@ public class login extends AppCompatActivity {
             }
         });
         camera_pane=(RelativeLayout)findViewById(R.id.camera_pane);
-        dp_Loader=(RelativeLayout)findViewById(R.id.dp_Loader);
-        uploadDP=(ProgressBar)findViewById(R.id.uploadDP);
-        uploadDP.getIndeterminateDrawable().setColorFilter(getColor(R.color.profile_text), PorterDuff.Mode.MULTIPLY);
+        dp_Loader=(ProgressBar) findViewById(R.id.dp_Loader);
+        dp_Loader.getIndeterminateDrawable().setColorFilter(getColor(R.color.profile_text), PorterDuff.Mode.MULTIPLY);
         profile=(CircularImageView)findViewById(R.id.profile);
         profile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -672,35 +675,73 @@ public class login extends AppCompatActivity {
         }
         else if(logs==4)
         {
-
         }
 
         profile_url=new File(new ContextWrapper(getApplicationContext()).getDir("imageDir", Context.MODE_PRIVATE),"profile.jpg").getAbsolutePath();
     }
-    public String uploadFile(Bitmap bitmap)
+    public void completeSignUp(Bitmap bitmap)
     {
-        String downloadUrl="";dp_Loader.setVisibility(View.VISIBLE);
-        StorageReference storageReference= FirebaseStorage.getInstance().getReference();
-        StorageReference riversRef = storageReference.child("UserDP/"+auth.getCurrentUser().getUid()+".jpg");
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        riversRef.putBytes(baos.toByteArray())
-                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        @SuppressWarnings("VisibleForTests") Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                        f_name.setText(downloadUrl.getPath());
-                        dp_Loader.setVisibility(View.GONE);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception exception) {
-                        Toast.makeText(getApplicationContext(), exception.getMessage(), Toast.LENGTH_LONG).show();
-                        dp_Loader.setVisibility(View.GONE);
-                    }
-                });
-        return downloadUrl;
+        dp_Loader.setVisibility(View.VISIBLE);profile.setEnabled(false);
+
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)profile.getLayoutParams();
+        layoutParams.removeRule(RelativeLayout.ABOVE);
+        layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+        profile.setLayoutParams(layoutParams);
+        profile.setShadowRadius(8);
+        profile.setBorderWidth(2);
+        scaleY(0,login_div);
+
+        if(isDP_added)
+        {
+            StorageReference storageReference= FirebaseStorage.getInstance().getReference();
+            StorageReference riversRef = storageReference.child("UserDP/"+auth.getCurrentUser().getUid()+".jpg");
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            riversRef.putBytes(baos.toByteArray())
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            @SuppressWarnings("VisibleForTests") Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(f_name.getText()+" "+l_name.getText()).setPhotoUri(downloadUrl).build();
+                            auth.getCurrentUser().updateProfile(profileUpdates)
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()) {profile.setEnabled(true);}
+                                        }
+                                    });
+                            upload_data();
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception exception) {
+                            Toast.makeText(getApplicationContext(), exception.getMessage(), Toast.LENGTH_LONG).show();
+                            dp_Loader.setVisibility(View.GONE);profile.setEnabled(true);
+                        }
+                    });
+        }
+        else
+        {
+            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                    .setDisplayName(f_name.getText()+" "+l_name.getText()).build();
+            auth.getCurrentUser().updateProfile(profileUpdates)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {profile.setEnabled(true);}
+                        }
+                    });
+            upload_data();
+        }
+    }
+    public void upload_data()
+    {
+        fdb= FirebaseDatabase.getInstance().getReference("users");
+        user user = new user(gender_text.getText().toString(),dob.getText().toString());
+        fdb.child(fdb.push().getKey()).setValue(user);
+        dp_Loader.setVisibility(View.GONE);
     }
     public void closeCam()
     {

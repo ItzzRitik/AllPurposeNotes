@@ -21,6 +21,18 @@
         <item>@color/g9</item>
     </array>
 
+    <array name="signUp">
+        <item>@color/g1</item>
+        <item>@color/g2</item>
+        <item>@color/g3</item>
+        <item>@color/g5</item>
+        <item>@color/g1</item>
+        <item>@color/g2</item>
+        <item>@color/g3</item>
+        <item>@color/g7</item>
+        <item>@color/g6</item>
+    </array>
+
     <!--
     <array name="theme">
         <item>@color/g5</item>

@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "50416366555-ei0aasd12dalrhuruj7sk9jvar499bcp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "xtremedeveloper.allpurposenotes",
+            "certificate_hash": "a19fc234ae9bfe9b6a277866131b2cc18e49cad1"
+          }
+        },
+        {
           "client_id": "50416366555-9fdtsg243t2gcbmfuqj7uv75pj8d4lo5.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

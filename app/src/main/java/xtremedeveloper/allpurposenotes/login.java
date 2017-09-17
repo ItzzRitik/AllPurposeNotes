@@ -61,8 +61,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -739,9 +742,19 @@ public class login extends AppCompatActivity {
     public void upload_data()
     {
         fdb= FirebaseDatabase.getInstance().getReference("users");
-        user user = new user(gender_text.getText().toString(),dob.getText().toString());
-        fdb.child(fdb.push().getKey()).setValue(user);
+        fdb.child(auth.getCurrentUser().getUid())
+                .setValue(new user_details(f_name.getText().toString(),l_name.getText().toString(),gender_text.getText().toString(),dob.getText().toString()));
         dp_Loader.setVisibility(View.GONE);
+
+        fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                user_details user = dataSnapshot.getValue(user_details.class);
+                Toast.makeText(login.this,user.getfname()+"  "+user.getlname()+"\n"+user.getgender()+"\n"+user.getdob(), Toast.LENGTH_SHORT).show();
+            }
+            @Override
+            public void onCancelled(DatabaseError error) {}
+        });
     }
     public void closeCam()
     {

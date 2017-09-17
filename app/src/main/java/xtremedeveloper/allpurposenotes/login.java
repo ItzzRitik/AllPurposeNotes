@@ -1,10 +1,8 @@
 package xtremedeveloper.allpurposenotes;
 
-import android.*;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
-import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -14,12 +12,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
-import android.graphics.drawable.shapes.OvalShape;
 import android.icu.text.SimpleDateFormat;
-import android.icu.util.Calendar;
 import android.net.Uri;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.provider.MediaStore;
@@ -44,9 +40,9 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -63,10 +59,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.jackandphantom.circularprogressbar.CircleProgressbar;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.sdsmdg.kd.trianglify.models.Palette;
 import com.sdsmdg.kd.trianglify.views.TrianglifyView;
@@ -76,10 +70,6 @@ import com.yalantis.ucrop.UCrop;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URI;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.regex.Pattern;
@@ -92,7 +82,7 @@ public class login extends AppCompatActivity {
     TextView signin,gender_text,verify_l1,verify_l2,verify_l4;
     ImageView ico_splash,dob_chooser,gender_swap,click,flash,camera_flip;
     RelativeLayout login_div,logo_div,splash_cover,email_reset,sign_dialog,forget_pass,gender,permission_camera;
-    RelativeLayout camera_pane,parentPanel,click_pane,galary;
+    RelativeLayout camera_pane,parentPanel,click_pane,galary,dp_Loader;
     Animation anim;
     boolean isDP_added =false,camStarted=false,camOn=false,galaryOn=false,isflash=false,isBack=false;
     EditText email,pass,con_pass,f_name,l_name,dob;
@@ -109,7 +99,7 @@ public class login extends AppCompatActivity {
     String profile_url="",profile_path="";
     UCrop.Options options;
     Bitmap profile_dp=null;
-    CircleProgressbar dp_Upload;
+    ProgressBar uploadDP;
     @Override
     protected void onResume() {
         super.onResume();
@@ -447,11 +437,13 @@ public class login extends AppCompatActivity {
         click.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                cameraView.captureImage();
+                if(camStarted){cameraView.captureImage();}
             }
         });
         camera_pane=(RelativeLayout)findViewById(R.id.camera_pane);
-        dp_Upload = (CircleProgressbar)findViewById(R.id.dp_Upload);
+        dp_Loader=(RelativeLayout)findViewById(R.id.dp_Loader);
+        uploadDP=(ProgressBar)findViewById(R.id.uploadDP);
+        uploadDP.getIndeterminateDrawable().setColorFilter(getColor(R.color.profile_text), PorterDuff.Mode.MULTIPLY);
         profile=(CircularImageView)findViewById(R.id.profile);
         profile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -687,10 +679,9 @@ public class login extends AppCompatActivity {
     }
     public String uploadFile(Bitmap bitmap)
     {
-        String downloadUrl="";
-        dp_Upload.setVisibility(View.VISIBLE);
+        String downloadUrl="";dp_Loader.setVisibility(View.VISIBLE);
         StorageReference storageReference= FirebaseStorage.getInstance().getReference();
-        StorageReference riversRef = storageReference.child("user/"+auth.getCurrentUser().getUid()+".jpg");
+        StorageReference riversRef = storageReference.child("UserDP/"+auth.getCurrentUser().getUid()+".jpg");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         riversRef.putBytes(baos.toByteArray())
@@ -699,22 +690,14 @@ public class login extends AppCompatActivity {
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                         @SuppressWarnings("VisibleForTests") Uri downloadUrl = taskSnapshot.getDownloadUrl();
                         f_name.setText(downloadUrl.getPath());
-                        dp_Upload.setVisibility(View.GONE);
+                        dp_Loader.setVisibility(View.GONE);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception exception) {
                         Toast.makeText(getApplicationContext(), exception.getMessage(), Toast.LENGTH_LONG).show();
-                        dp_Upload.setVisibility(View.GONE);
-                    }
-                })
-                .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                        @SuppressWarnings("VisibleForTests")
-                        double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
-                        dp_Upload.setProgressWithAnimation((int) progress,10);
+                        dp_Loader.setVisibility(View.GONE);
                     }
                 });
         return downloadUrl;

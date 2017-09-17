@@ -401,19 +401,26 @@
             android:visibility="gone"
             app:civ_shadow_radius="3"
             app:civ_shadow_color="#6c6c6c"/>
-        <com.jackandphantom.circularprogressbar.CircleProgressbar
+        <RelativeLayout
             android:layout_width="125dp"
             android:layout_height="125dp"
-            android:id="@+id/dp_Upload"
-            app:cpb_progress="50"
-            app:cpb_roundedCorner="true"
-            app:cpb_foregroundProgressWidth="15"
-            app:cpb_foregroundProgressColor="#1864c2"
-            app:cpb_touchEnabled="true"
-            android:visibility="gone"
             android:layout_centerHorizontal="true"
             android:layout_above="@+id/login_div"
-            android:layout_marginBottom="-55dp"/>
+            android:layout_marginBottom="-53dp"
+            android:padding="5dp"
+            android:id="@+id/dp_Loader"
+            android:visibility="gone">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/dp_upload_layer">
+                <ProgressBar
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:id="@+id/uploadDP"
+                    android:layout_centerInParent="true"/>
+            </RelativeLayout>
+        </RelativeLayout>
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"

@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -882,11 +883,29 @@ public class login extends AppCompatActivity {
                 new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(profile);}},3000);
             }
             catch (Exception e){}
-            f_name.setText(Uri.parse(profile_path).toString());
+            if(new File(getRealPathFromURI(login.this,Uri.parse(profile_path))).delete())
+                Toast.makeText(login.this, "Deleted", Toast.LENGTH_SHORT).show();
         }
         else if (resultcode == UCrop.RESULT_ERROR) {
             final Throwable cropError = UCrop.getError(intent);
             Toast.makeText(login.this,getString(R.string.error)+cropError, Toast.LENGTH_LONG).show();
+            if(new File(getRealPathFromURI(login.this,Uri.parse(profile_path))).delete())
+                Toast.makeText(login.this, "Deleted", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public String getRealPathFromURI(Context context, Uri contentUri) {
+        Cursor cursor = null;
+        try {
+            String[] proj = { MediaStore.Images.Media.DATA };
+            cursor = context.getContentResolver().query(contentUri,  proj, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
     }
 }

@@ -18,6 +18,7 @@ import android.graphics.drawable.shapes.OvalShape;
 import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.provider.MediaStore;
@@ -67,6 +68,10 @@ import com.yalantis.ucrop.UCrop;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URI;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.regex.Pattern;
@@ -92,7 +97,7 @@ public class login extends AppCompatActivity {
     CameraView cameraView;
     ToolTipsManager toolTip;
     Animator animator;
-    String profile_url="";
+    String profile_url="",profile_path="";
     UCrop.Options options;
     @Override
     protected void onResume() {
@@ -372,11 +377,10 @@ public class login extends AppCompatActivity {
                     matrix.postScale(-1, 1,result.getWidth()/2, result.getHeight()/2);
                     result= Bitmap.createBitmap(result, 0, 0, result.getWidth(), result.getHeight(), matrix, true);
                 }
-                vibrate(20);result.compress(Bitmap.CompressFormat.JPEG, 100, new ByteArrayOutputStream());
-                String path = MediaStore.Images.Media.insertImage(login.this.getContentResolver(), result, "Title", null);
-                UCrop.of(Uri.parse(path),Uri.parse(profile_url)).withOptions(options).withAspectRatio(1,1)
+                vibrate(20);
+                profile_path = MediaStore.Images.Media.insertImage(login.this.getContentResolver(), result, "Title", null);
+                UCrop.of(Uri.parse(profile_path),Uri.parse(profile_url)).withOptions(options).withAspectRatio(1,1)
                         .withMaxResultSize(maxWidth, maxHeight).start(login.this);
-
             }
         });
 
@@ -865,7 +869,7 @@ public class login extends AppCompatActivity {
                 final Uri resultUri = UCrop.getOutput(intent);
                 Bitmap bitmap= MediaStore.Images.Media.getBitmap(login.this.getContentResolver(), resultUri);
                 profile.setImageBitmap(bitmap);isDP_added=true;
-                closeCam();new File(resultUri.toString()).delete();
+                closeCam();
                 new Handler().postDelayed(new Runnable() {@Override public void run()
                 {
                     ToolTip.Builder builder = new ToolTip.Builder(login.this, profile,parentPanel, getString(R.string.osm_dp), ToolTip.POSITION_ABOVE);
@@ -878,7 +882,9 @@ public class login extends AppCompatActivity {
                 new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(profile);}},3000);
             }
             catch (Exception e){}
-        } else if (resultcode == UCrop.RESULT_ERROR) {
+            f_name.setText(Uri.parse(profile_path).toString());
+        }
+        else if (resultcode == UCrop.RESULT_ERROR) {
             final Throwable cropError = UCrop.getError(intent);
             Toast.makeText(login.this,getString(R.string.error)+cropError, Toast.LENGTH_LONG).show();
         }

@@ -63,8 +63,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.jackandphantom.circularprogressbar.CircleProgressbar;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.sdsmdg.kd.trianglify.models.Palette;
 import com.sdsmdg.kd.trianglify.views.TrianglifyView;
@@ -107,6 +109,7 @@ public class login extends AppCompatActivity {
     String profile_url="",profile_path="";
     UCrop.Options options;
     Bitmap profile_dp=null;
+    CircleProgressbar dp_Upload;
     @Override
     protected void onResume() {
         super.onResume();
@@ -335,7 +338,8 @@ public class login extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 vibrate(20);
-                DatePickerDialog dd = new DatePickerDialog(login.this,
+                if(profile_dp!=null){String path=uploadFile(profile_dp);}
+                /*DatePickerDialog dd = new DatePickerDialog(login.this,
                         new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker view, int year,
@@ -349,7 +353,7 @@ public class login extends AppCompatActivity {
                                 } catch (Exception ex) {}
                             }
                         }, 2000,  Calendar.getInstance().get(Calendar.MONTH),  Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
-                dd.show();
+                dd.show();*/
             }
         });
 
@@ -447,6 +451,7 @@ public class login extends AppCompatActivity {
             }
         });
         camera_pane=(RelativeLayout)findViewById(R.id.camera_pane);
+        dp_Upload = (CircleProgressbar)findViewById(R.id.dp_Upload);
         profile=(CircularImageView)findViewById(R.id.profile);
         profile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -675,38 +680,43 @@ public class login extends AppCompatActivity {
         }
         else if(logs==4)
         {
-            profile.setDrawingCacheEnabled(true);
-            Bitmap bmp=profile.getDrawingCache();
-            String path=uploadFile(bmp).getPath();
-            Toast.makeText(this, path, Toast.LENGTH_SHORT).show();
+
         }
 
         profile_url=new File(new ContextWrapper(getApplicationContext()).getDir("imageDir", Context.MODE_PRIVATE),"profile.jpg").getAbsolutePath();
     }
-    public Uri uploadFile(Bitmap bitmap) {
-        Uri downloadUrl=null;
-        storage = FirebaseStorage.getInstance();
-        StorageReference storageRef = storage.getReferenceFromUrl("gs://allpurposenotes-a3eb6.appspot.com");
-        StorageReference mountainsRef = storageRef.child(auth.getCurrentUser().getUid()+".jpg");
-        StorageReference mountainImagesRef = storageRef.child("users/"+auth.getCurrentUser().getUid()+".jpg");
-        mountainsRef.getName().equals(mountainImagesRef.getName());
-        mountainsRef.getPath().equals(mountainImagesRef.getPath());
-
+    public String uploadFile(Bitmap bitmap)
+    {
+        String downloadUrl="";
+        dp_Upload.setVisibility(View.VISIBLE);
+        StorageReference storageReference= FirebaseStorage.getInstance().getReference();
+        StorageReference riversRef = storageReference.child("user/"+auth.getCurrentUser().getUid()+".jpg");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        byte[] data = baos.toByteArray();
-
-        UploadTask uploadTask = mountainsRef.putBytes(data);
-        uploadTask.addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception exception) {}
-        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Uri downloadUrl = taskSnapshot.getMetadata().getDownloadUrl();
-                f_name.setText(downloadUrl.getPath());
-            }
-        });
+        riversRef.putBytes(baos.toByteArray())
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        @SuppressWarnings("VisibleForTests") Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                        f_name.setText(downloadUrl.getPath());
+                        dp_Upload.setVisibility(View.GONE);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        Toast.makeText(getApplicationContext(), exception.getMessage(), Toast.LENGTH_LONG).show();
+                        dp_Upload.setVisibility(View.GONE);
+                    }
+                })
+                .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                        @SuppressWarnings("VisibleForTests")
+                        double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+                        dp_Upload.setProgressWithAnimation((int) progress,10);
+                    }
+                });
         return downloadUrl;
     }
     public void closeCam()

@@ -616,8 +616,14 @@ public class login extends AppCompatActivity {
                             }
                             else
                             {
-                                sign_dialog.setVisibility(View.GONE);email.setText("");pass.setEnabled(true);
-                                Toast.makeText(login.this, "Successfully Logged in", Toast.LENGTH_SHORT).show();email_reset.performClick();
+                                if (auth.getCurrentUser().isEmailVerified()) {
+                                    Toast.makeText(login.this, "Done", Toast.LENGTH_SHORT).show();
+                                }
+                                else
+                                    {
+                                        setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
+                                        sendVerification();
+                                }
                             }
                         }
                     });
@@ -642,11 +648,7 @@ public class login extends AppCompatActivity {
                                             public void onComplete(@NonNull Task task) {
                                                 setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
                                                 if (task.isSuccessful()) {sendVerification();}
-                                                else
-                                                {
-                                                    verify_l2.setVisibility(View.VISIBLE);
-                                                    verify_l2.setText(getString(R.string.failed_send));
-                                                }
+                                                else {verify_l2.setVisibility(View.VISIBLE);verify_l2.setText(getString(R.string.failed_send));}
                                             }
                                         });
                             }

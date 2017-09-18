@@ -2,17 +2,35 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#232323">
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="400dp"
         android:layout_marginTop="-100dp"
-        android:src="@mipmap/boy"
+        android:src="@mipmap/tony"
         android:layout_alignParentTop="true"
         android:scaleType="centerCrop"/>
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/diagonal_background">
+        <RelativeLayout
+            android:layout_width="135dp"
+            android:layout_height="135dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="185dp"
+            android:background="@drawable/profile_back">
+        </RelativeLayout>
+        <com.mikhaellopez.circularimageview.CircularImageView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:id="@+id/profile_menu"
+            android:src="@mipmap/tony"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="192.5dp"
+            app:civ_border_width="0.1dp"
+            app:civ_border_color="#686868"
+            app:civ_shadow="false"/>
     </RelativeLayout>
 </RelativeLayout>

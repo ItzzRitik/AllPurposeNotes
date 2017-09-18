@@ -30,6 +30,6 @@
         android:layout_height="wrap_content"
         app:layout_anchor="@id/app_bar"
         android:layout_margin="20dp"
-        app:layout_anchorGravity="bottom|end"
-        app:srcCompat="@android:drawable/ic_dialog_info" />
+        app:layout_anchorGravity="bottom|center"
+        app:srcCompat="@drawable/arrow_up" />
 </android.support.design.widget.CoordinatorLayout>

@@ -1,5 +1,4 @@
 package xtremedeveloper.allpurposenotes;
-
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
@@ -87,9 +86,8 @@ import java.util.regex.Pattern;
 
 import static android.R.attr.maxHeight;
 import static android.R.attr.maxWidth;
-
-public class login extends AppCompatActivity {
-
+public class login extends AppCompatActivity
+{
     TextView signin,gender_text,verify_l1,verify_l2,verify_l4;
     ImageView ico_splash,dob_chooser,gender_swap,click,flash,camera_flip;
     RelativeLayout login_div,logo_div,splash_cover,email_reset,sign_dialog,forget_pass,gender,permission_camera;
@@ -122,7 +120,6 @@ public class login extends AppCompatActivity {
             Animation anim = AnimationUtils.loadAnimation(login.this, R.anim.click_grow);click.startAnimation(anim);
         }},500);
     }
-
     @Override
     protected void onPause() {
         if(camStarted){cameraView.stop();camStarted=false;}

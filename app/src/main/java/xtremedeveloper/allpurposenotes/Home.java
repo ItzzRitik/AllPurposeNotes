@@ -28,6 +28,6 @@ public class Home extends AppCompatActivity
         });
 
         display_name=(TextView)findViewById(R.id.display_name);
-        display_name.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/vdub.ttf"));
+        display_name.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/exo2.ttf"));
     }
 }

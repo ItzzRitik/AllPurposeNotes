@@ -34,16 +34,17 @@
         </RelativeLayout>
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="70dp"
             android:id="@+id/display_name"
+            android:gravity="center_vertical|start"
             android:layout_toEndOf="@+id/profile_menu_cov"
             android:layout_alignBottom="@+id/profile_menu_cov"
             android:layout_marginStart="35dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="9dp"
             android:textColor="@color/profile_text"
             android:textSize="33sp"
-            android:textStyle="bold"
-            android:lineSpacingExtra="-4sp"
-            android:text="Ritik\nSrivastava"/>
+            android:textStyle="normal"
+            android:lineSpacingExtra="-10sp"
+            android:text="Ritik Srivastava"/>
     </RelativeLayout>
 </RelativeLayout>

@@ -530,7 +530,9 @@ public class login extends AppCompatActivity
                         break;
                     case MotionEvent.ACTION_UP:
                         signin.setBackgroundResource(R.drawable.signin);signin.setTextColor(Color.parseColor("#02723B"));
-                        performSignIn();vibrate(20);
+                        //performSignIn();vibrate(20);
+                        Intent home=new Intent(login.this,Home.class);
+                        startActivity(home);
                         break;
                 }
                 return true;
@@ -762,7 +764,7 @@ public class login extends AppCompatActivity
         fdb= FirebaseDatabase.getInstance().getReference("user_details");
         fdb.child(auth.getCurrentUser().getUid())
                 .setValue(new user_details(f_name.getText().toString(),l_name.getText().toString(),gender_text.getText().toString(),dob.getText().toString()));
-        fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+        /*fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 user_details user = dataSnapshot.getValue(user_details.class);
@@ -770,7 +772,7 @@ public class login extends AppCompatActivity
             }
             @Override
             public void onCancelled(DatabaseError error) {}
-        });
+        });*/
         dp_Loader.setVisibility(View.GONE);
     }
     public void closeCam()

@@ -9,6 +9,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
+import com.sdsmdg.kd.trianglify.models.Palette;
+import com.sdsmdg.kd.trianglify.views.TrianglifyView;
+
 public class Home extends AppCompatActivity
 {
     FloatingActionButton close_menu;

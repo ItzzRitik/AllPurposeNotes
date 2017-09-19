@@ -19,7 +19,7 @@ public class Home extends AppCompatActivity
     TextView display_name;
     ViewPager notePager;
     MyPagerAdapter note_adapter;
-    private int[] note_items = {1,2,3,4,5,6,7,8,9};
+    private String[] note_title = {"Notes 1","Notes 2","Notes 3","Notes 4","Notes 5"};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,7 +41,7 @@ public class Home extends AppCompatActivity
         notePager.setClipChildren(false);
         notePager.setOffscreenPageLimit(3);
         notePager.setPageTransformer(false, new CarouselEffectTransformer(this));
-        notePager.setAdapter(new MyPagerAdapter(this,note_items));
+        notePager.setAdapter(new MyPagerAdapter(Home.this,note_title));
 
 
     }

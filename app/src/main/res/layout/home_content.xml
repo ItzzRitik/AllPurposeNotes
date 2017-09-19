@@ -15,5 +15,5 @@
         android:paddingTop="120dp"
         android:paddingBottom="40dp"
         android:background="#dedede"
-        android:layout_gravity="center" />
+        android:layout_gravity="center"/>
 </RelativeLayout>

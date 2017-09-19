@@ -14,6 +14,6 @@
         android:paddingRight="20dp"
         android:paddingTop="120dp"
         android:paddingBottom="40dp"
-        android:background="#d1d1d1"
+        android:background="#dedede"
         android:layout_gravity="center" />
 </RelativeLayout>

@@ -17,17 +17,64 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="#3a3a3a">
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                android:id="@+id/notes_text">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:id="@+id/card_header_text"
+                    android:layout_alignParentTop="true"
+                    android:background="@color/cardHeader">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:id="@+id/notes_title_text"
+                        android:textSize="25sp"
+                        android:text=""/>
+                </RelativeLayout>
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:id="@+id/notes_title"
-                    android:textSize="25sp"
-                    android:text=""/>
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_below="@+id/card_header_text"
+                    android:id="@+id/notes_textData"
+                    android:gravity="top|start"
+                    android:layout_margin="10dp"
+                    android:textSize="16sp"
+                    android:textColor="@color/cardHeader"
+                    android:text="@string/verify2"/>
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                android:id="@+id/notes_pic">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:id="@+id/notes_picView"
+                    android:src="@mipmap/tony"/>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:id="@+id/card_header_pic"
+                    android:layout_alignParentTop="true"
+                    android:background="@color/cardHeader"
+                    android:alpha="0.784">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:id="@+id/notes_title_pic"
+                        android:textSize="25sp"
+                        android:text="Notes 1"/>
+                </RelativeLayout>
             </RelativeLayout>
         </RelativeLayout>
     </android.support.v7.widget.CardView>

@@ -8,29 +8,52 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 public class MyPagerAdapter extends PagerAdapter{
     Context context;
     String[] listItems;
-    public MyPagerAdapter(Context context, String[] listItems)
+    RelativeLayout notes_text,notes_pic;
+    int []Ctype;
+    public MyPagerAdapter(Context context, String[] listItems,int[] Ctype)
     {
         this.context = context;
         this.listItems = listItems;
+        this.Ctype=Ctype;
     }
 
     @Override
     public Object instantiateItem(ViewGroup container, int position)
     {
         View view = LayoutInflater.from(context).inflate(R.layout.note_items, null);
-        try {
-            CardView note_card = (CardView) view.findViewById(R.id.note_card);
-            note_card.setTag(position);
-            TextView notes_title=(TextView)view.findViewById(R.id.notes_title);
-            notes_title.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/exo2.ttf"));
-            notes_title.setText(listItems[position]);
+        CardView note_card = (CardView) view.findViewById(R.id.note_card);
+        note_card.setTag(position);
+        notes_text=(RelativeLayout)view.findViewById(R.id.notes_text);
+        notes_pic=(RelativeLayout)view.findViewById(R.id.notes_pic);
+        try
+        {
+            if(Ctype[position]==1)
+            {
+                notes_text.setVisibility(View.VISIBLE);notes_pic.setVisibility(View.GONE);
+
+                TextView notes_title=(TextView)view.findViewById(R.id.notes_title_text);
+                notes_title.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/exo2.ttf"));
+                notes_title.setText(listItems[position]);
+            }
+            else if(Ctype[position]==2)
+            {
+                notes_text.setVisibility(View.GONE);notes_pic.setVisibility(View.VISIBLE);
+                TextView notes_title_pic=(TextView)view.findViewById(R.id.notes_title_pic);
+                notes_title_pic.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/exo2.ttf"));
+                notes_title_pic.setText(listItems[position]);
+            }
             container.addView(view);
-        } catch (Exception e) {e.printStackTrace();}
+        } catch (Exception e) {e.printStackTrace();
+            Toast.makeText(context, ""+e, Toast.LENGTH_SHORT).show();}
         return view;
     }
     @Override

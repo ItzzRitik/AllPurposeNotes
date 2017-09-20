@@ -530,9 +530,7 @@ public class login extends AppCompatActivity
                         break;
                     case MotionEvent.ACTION_UP:
                         signin.setBackgroundResource(R.drawable.signin);signin.setTextColor(Color.parseColor("#02723B"));
-                        //performSignIn();vibrate(20);
-                        Intent home=new Intent(login.this,Home.class);
-                        startActivity(home);
+                        performSignIn();vibrate(20);
                         break;
                 }
                 return true;
@@ -774,6 +772,8 @@ public class login extends AppCompatActivity
             public void onCancelled(DatabaseError error) {}
         });*/
         dp_Loader.setVisibility(View.GONE);
+        Intent home=new Intent(login.this,Home.class);
+        startActivity(home);
     }
     public void closeCam()
     {

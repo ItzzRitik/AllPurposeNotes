@@ -16,13 +16,24 @@
         android:layout_height="match_parent"
         android:background="@drawable/diagonal_background">
         <RelativeLayout
-            android:layout_width="135dp"
-            android:layout_height="135dp"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
             android:layout_alignParentStart="true"
-            android:layout_marginTop="150dp"
-            android:layout_marginStart="30dp"
-            android:id="@+id/profile_menu_cov"
-            android:background="@drawable/profile_back">
+            android:layout_marginTop="140dp"
+            android:layout_marginStart="20dp"
+            android:id="@+id/profile_menu_cov">
+            <RelativeLayout
+                android:layout_width="135dp"
+                android:layout_height="135dp"
+                android:layout_centerInParent="true"
+                android:background="@drawable/profile_back">
+            </RelativeLayout>
+            <ProgressBar
+                android:layout_width="152dp"
+                android:layout_height="152dp"
+                android:id="@+id/loading_profile"
+                android:visibility="gone"
+                android:layout_centerInParent="true"/>
             <com.mikhaellopez.circularimageview.CircularImageView
                 android:layout_width="120dp"
                 android:layout_height="120dp"
@@ -38,9 +49,9 @@
             android:gravity="center_vertical|start"
             android:layout_toEndOf="@+id/profile_menu_cov"
             android:layout_alignBottom="@+id/profile_menu_cov"
-            android:layout_marginStart="35dp"
-            android:layout_marginBottom="9dp"
-            android:layout_marginEnd="30dp"
+            android:layout_marginStart="25dp"
+            android:layout_marginBottom="21dp"
+            android:layout_marginEnd="25dp"
             android:textColor="@color/profile_text"
             android:textSize="32sp"
             android:textStyle="normal"

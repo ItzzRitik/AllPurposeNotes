@@ -403,7 +403,7 @@
             android:layout_above="@+id/login_div"
             android:layout_marginBottom="-55dp"
             app:civ_border_width="5dp"
-            app:civ_shadow="true"
+            app:civ_shadow="false"
             android:visibility="gone"
             app:civ_shadow_radius="3"
             app:civ_shadow_color="#6c6c6c"/>

@@ -5,8 +5,10 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -16,6 +18,7 @@ import android.os.Bundle;
 import android.util.Base64;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,6 +53,7 @@ public class Home extends AppCompatActivity
     String userName,userId;
     Bitmap profile_pic;
     SharedPreferences pref;
+    ProgressBar loading_profile;
     private String[] note_title = {"Notes 1","Notes 2","Notes 3","Notes 4","Notes 5"};
     private int[] notes_type={1,2,1,2,1};
     @Override
@@ -62,6 +66,8 @@ public class Home extends AppCompatActivity
         auth=FirebaseAuth.getInstance();
         pref = getPreferences(MODE_PRIVATE);
 
+        loading_profile=(ProgressBar)findViewById(R.id.loading_profile);
+        loading_profile.getIndeterminateDrawable().setColorFilter(getColor(R.color.profile_text), PorterDuff.Mode.MULTIPLY);
         appbar = (AppBarLayout)findViewById(R.id.appbar);
         close_menu=(FloatingActionButton)findViewById(R.id.close_menu);
         close_menu.setOnClickListener(new View.OnClickListener() {
@@ -85,29 +91,26 @@ public class Home extends AppCompatActivity
         userName=auth.getCurrentUser().getDisplayName();
         userId=auth.getCurrentUser().getUid();
         String userDataFolder=userName.substring(0,userName.indexOf(' '))+userId.substring(0,userId.length()/3);
-        rootPath = new File(Environment.getExternalStorageDirectory(),"UserData/"+userDataFolder);
+        rootPath = new File(getCacheDir(),"UserData/"+userDataFolder);
+        if(!rootPath.exists()){rootPath.mkdirs();}
         receiveProfile();
     }
     public void receiveProfile()
     {
         String json = pref.getString("user_details", "");
         user = (new Gson()).fromJson(json, user_details.class);
-        if(user!=null)
-        {
-            display_name.setText(auth.getCurrentUser().getDisplayName());
-            getDP();
-        }
+        if(user!=null) {display_name.setText(auth.getCurrentUser().getDisplayName());getDP();}
         else
         {
             fdb= FirebaseDatabase.getInstance().getReference("user_details");
             fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+                @SuppressLint("ApplySharedPref")
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     user = dataSnapshot.getValue(user_details.class);
                     SharedPreferences.Editor prefsEditor = pref.edit();
                     prefsEditor.putString("user_details", new Gson().toJson(user));
-                    prefsEditor.apply();
-                    getDP();
+                    prefsEditor.commit();receiveProfile();
                 }
                 @Override
                 public void onCancelled(DatabaseError error) {}
@@ -116,8 +119,12 @@ public class Home extends AppCompatActivity
     }
     public void getDP()
     {
+        profile_menu.setImageResource(R.mipmap.boy);loading_profile.setVisibility(View.VISIBLE);
+        if(user.getgender().equals("SHE")){profile_menu.setImageResource(R.mipmap.girl);}
         profile_pic=decodeBase64(pref.getString("profile_pic",""));
-        if(profile_pic!=null) {profile_menu.setImageBitmap(profile_pic);menu_cover.setImageBitmap(profile_pic);}
+        if(profile_pic!=null) {
+            profile_menu.setImageBitmap(profile_pic);menu_cover.setImageBitmap(profile_pic);
+            loading_profile.setVisibility(View.GONE);}
         else
         {
             fbs = FirebaseStorage.getInstance().getReference().child("UserDP/"+auth.getCurrentUser().getUid()+".jpg");
@@ -129,7 +136,8 @@ public class Home extends AppCompatActivity
                     Bitmap bitmap = BitmapFactory.decodeFile(localFile.toString(), new BitmapFactory.Options());
                     SharedPreferences.Editor editor = pref.edit();
                     editor.putString("profile_pic", encodeTobase64(bitmap));
-                    editor.commit();//new File(localFile.getPath()).delete();
+                    editor.commit();
+                    if (!localFile.delete()){localFile.delete();}
                     getDP();
                 }
             }).addOnFailureListener(new OnFailureListener() {

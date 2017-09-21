@@ -15,6 +15,7 @@
     <string name="check">CHECK</string>
     <string name="verified">Verified</string>
     <string name="pass_reset">Check Your Email\nTo Continue Password Recovery</string>
+    <string name="complete_signUp">We need to know about you more\nPlease complete sign up process.</string>
     <string name="remove_pic">Long Press\nTo Remove Picture</string>
     <string name="open_galary">Long Press\nTo Open Gallery</string>
     <string name="blind">I\'m Blind\nPlease Provide Camera Permission</string>

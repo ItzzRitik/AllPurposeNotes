@@ -635,17 +635,17 @@ public class login extends AppCompatActivity
                                         }
                                         catch (NullPointerException e)
                                         {
-                                            ToolTip.Builder builder = new ToolTip.Builder(login.this, signin,parentPanel, getString(R.string.add_dp), ToolTip.POSITION_ABOVE);
+                                            ToolTip.Builder builder = new ToolTip.Builder(login.this, forget_pass,parentPanel, getString(R.string.complete_signUp), ToolTip.POSITION_ABOVE);
                                             builder.setBackgroundColor(getColor(R.color.profile));
                                             builder.setTextColor(getColor(R.color.profile_text));
                                             builder.setGravity(ToolTip.GRAVITY_CENTER);
                                             builder.setTextSize(15);
                                             toolTip.show(builder.build());
-                                            new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(profile);}},3000);
+                                            new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(forget_pass);}},4000);
                                             new Handler().postDelayed(new Runnable() {@Override public void run() {
                                                 setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
                                                 sendVerification();
-                                            }},3000);
+                                            }},4500);
                                         }
                                         catch (Exception e) {Toast.makeText(login.this, e.toString(), Toast.LENGTH_SHORT).show();}
                                     }

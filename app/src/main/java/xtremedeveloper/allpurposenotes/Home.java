@@ -90,6 +90,7 @@ public class Home extends AppCompatActivity
 
         userName=auth.getCurrentUser().getDisplayName();
         userId=auth.getCurrentUser().getUid();
+        Toast.makeText(this, userName+" , "+userId, Toast.LENGTH_SHORT).show();
         String userDataFolder=userName.substring(0,userName.indexOf(' '))+userId.substring(0,userId.length()/3);
         rootPath = new File(getCacheDir(),"UserData/"+userDataFolder);
         if(!rootPath.exists()){rootPath.mkdirs();}

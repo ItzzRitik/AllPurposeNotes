@@ -92,6 +92,8 @@ import java.util.regex.Pattern;
 
 import static android.R.attr.maxHeight;
 import static android.R.attr.maxWidth;
+import static xtremedeveloper.allpurposenotes.Home.encodeTobase64;
+
 public class login extends AppCompatActivity
 {
     TextView signin,gender_text,verify_l1,verify_l2,verify_l4;
@@ -565,6 +567,8 @@ public class login extends AppCompatActivity
                 ico_splash.setImageResource(R.mipmap.logo);
                 Animation anima = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_reveal);
                 logo_div.setVisibility(View.VISIBLE);logo_div.startAnimation(anima);ico_splash.startAnimation(anim);
+                //if(auth.getCurrentUser()!=null){Intent home=new Intent(login.this,Home.class);startActivity(home);}
+                //else{new Handler().postDelayed(new Runnable() {@Override public void run() {scaleY(48,login_div);}},800);}
                 new Handler().postDelayed(new Runnable() {@Override public void run() {scaleY(48,login_div);}},800);
             }
         },1500);
@@ -622,30 +626,28 @@ public class login extends AppCompatActivity
                                 fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
+                                        final user_details user=dataSnapshot.getValue(user_details.class);
                                         try
                                         {
-                                            dataSnapshot.getValue(user_details.class);
-                                            Intent home=new Intent(login.this,Home.class);email_reset.performClick();
-                                            startActivity(home);
+                                            user.getgender();
+                                            email_reset.performClick();
+                                            startActivity(new Intent(login.this,Home.class));
                                         }
                                         catch (NullPointerException e)
                                         {
-                                            new Handler().postDelayed(new Runnable() {
-                                                @Override
-                                                public void run()
-                                                {
-                                                    ToolTip.Builder builder = new ToolTip.Builder(login.this, profile,parentPanel, getString(R.string.add_dp), ToolTip.POSITION_ABOVE);
-                                                    builder.setBackgroundColor(getColor(R.color.profile));
-                                                    builder.setTextColor(getColor(R.color.profile_text));
-                                                    builder.setGravity(ToolTip.GRAVITY_CENTER);
-                                                    builder.setTextSize(15);
-                                                    toolTip.show(builder.build());
-                                                }},7000);
-                                            new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(profile);}},9700);
-                                            setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
-                                            sendVerification();
+                                            ToolTip.Builder builder = new ToolTip.Builder(login.this, signin,parentPanel, getString(R.string.add_dp), ToolTip.POSITION_ABOVE);
+                                            builder.setBackgroundColor(getColor(R.color.profile));
+                                            builder.setTextColor(getColor(R.color.profile_text));
+                                            builder.setGravity(ToolTip.GRAVITY_CENTER);
+                                            builder.setTextSize(15);
+                                            toolTip.show(builder.build());
+                                            new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(profile);}},3000);
+                                            new Handler().postDelayed(new Runnable() {@Override public void run() {
+                                                setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
+                                                sendVerification();
+                                            }},3000);
                                         }
-                                        catch (Exception e) {}
+                                        catch (Exception e) {Toast.makeText(login.this, e.toString(), Toast.LENGTH_SHORT).show();}
                                     }
                                     @Override
                                     public void onCancelled(DatabaseError error) {}
@@ -740,7 +742,6 @@ public class login extends AppCompatActivity
         profile.setShadowRadius(8);
         profile.setBorderWidth(2);
         scaleY(0,login_div);
-
         if(isDP_added)
         {
             StorageReference storageReference= FirebaseStorage.getInstance().getReference();
@@ -749,6 +750,7 @@ public class login extends AppCompatActivity
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
             riversRef.putBytes(baos.toByteArray())
                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @SuppressLint("ApplySharedPref")
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                             @SuppressWarnings("VisibleForTests") Uri downloadUrl = taskSnapshot.getDownloadUrl();
@@ -761,6 +763,9 @@ public class login extends AppCompatActivity
                                             if (task.isSuccessful()) {profile.setEnabled(true);}
                                         }
                                     });
+                            SharedPreferences.Editor editor = pref.edit();
+                            editor.putString("profile_pic", encodeTobase64(profile_dp));
+                            editor.commit();
                             upload_data();
                         }
                     })
@@ -792,16 +797,14 @@ public class login extends AppCompatActivity
         user_details user=new user_details(f_name.getText().toString(),l_name.getText().toString(),gender_text.getText().toString(),dob.getText().toString());
         fdb= FirebaseDatabase.getInstance().getReference("user_details");
         fdb.child(auth.getCurrentUser().getUid()).setValue(user);
-        dp_Loader.setVisibility(View.GONE);email_reset.performClick();
+        dp_Loader.setVisibility(View.GONE);
         SharedPreferences.Editor prefsEditor = pref.edit();
         Gson gson = new Gson();
         String json = gson.toJson(user);
         prefsEditor.putString("user_details", json);
         prefsEditor.commit();
-        new Handler().postDelayed(new Runnable() {@Override public void run() {
-            Intent home=new Intent(login.this,Home.class);
-            startActivity(home);
-        }},2000);
+        Intent home=new Intent(login.this,Home.class);
+        startActivity(home);email_reset.performClick();
     }
     public void closeCam()
     {

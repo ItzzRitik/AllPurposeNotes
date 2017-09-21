@@ -82,9 +82,6 @@ import com.yalantis.ucrop.UCrop;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
@@ -92,7 +89,6 @@ import java.util.regex.Pattern;
 
 import static android.R.attr.maxHeight;
 import static android.R.attr.maxWidth;
-import static xtremedeveloper.allpurposenotes.Home.encodeTobase64;
 
 public class login extends AppCompatActivity
 {
@@ -160,7 +156,8 @@ public class login extends AppCompatActivity
         super.onCreate(savedInstanceState);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
-        setContentView(R.layout.activity_login);
+        if(FirebaseAuth.getInstance().getCurrentUser()!=null){startActivity(new Intent(login.this,Home.class));finish();}
+        else {setContentView(R.layout.activity_login);}
         auth = FirebaseAuth.getInstance();
         pref = getPreferences(MODE_PRIVATE);
         toolTip = new ToolTipsManager();
@@ -562,14 +559,16 @@ public class login extends AppCompatActivity
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                anim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_trans);
-                splash_cover.setVisibility(View.GONE);
-                ico_splash.setImageResource(R.mipmap.logo);
-                Animation anima = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_reveal);
-                logo_div.setVisibility(View.VISIBLE);logo_div.startAnimation(anima);ico_splash.startAnimation(anim);
-                //if(auth.getCurrentUser()!=null){Intent home=new Intent(login.this,Home.class);startActivity(home);}
-                //else{new Handler().postDelayed(new Runnable() {@Override public void run() {scaleY(48,login_div);}},800);}
-                new Handler().postDelayed(new Runnable() {@Override public void run() {scaleY(48,login_div);}},800);
+                if(FirebaseAuth.getInstance().getCurrentUser()!=null){Intent home=new Intent(login.this,Home.class);startActivity(home);}
+                else
+                {
+                    anim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_trans);
+                    splash_cover.setVisibility(View.GONE);
+                    ico_splash.setImageResource(R.mipmap.logo);
+                    Animation anima = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_reveal);
+                    logo_div.setVisibility(View.VISIBLE);logo_div.startAnimation(anima);ico_splash.startAnimation(anim);
+                    new Handler().postDelayed(new Runnable() {@Override public void run() {scaleY(48,login_div);}},800);
+                }
             }
         },1500);
     }
@@ -763,9 +762,6 @@ public class login extends AppCompatActivity
                                             if (task.isSuccessful()) {profile.setEnabled(true);}
                                         }
                                     });
-                            SharedPreferences.Editor editor = pref.edit();
-                            editor.putString("profile_pic", encodeTobase64(profile_dp));
-                            editor.commit();
                             upload_data();
                         }
                     })
@@ -799,12 +795,10 @@ public class login extends AppCompatActivity
         fdb.child(auth.getCurrentUser().getUid()).setValue(user);
         dp_Loader.setVisibility(View.GONE);
         SharedPreferences.Editor prefsEditor = pref.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(user);
-        prefsEditor.putString("user_details", json);
+        prefsEditor.putString(auth.getCurrentUser().getUid()+"user_details", new Gson().toJson(user));
         prefsEditor.commit();
         Intent home=new Intent(login.this,Home.class);
-        startActivity(home);email_reset.performClick();
+        startActivity(home);
     }
     public void closeCam()
     {

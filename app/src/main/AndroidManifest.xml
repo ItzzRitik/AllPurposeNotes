@@ -23,6 +23,7 @@
             android:name=".login"
             android:configChanges="orientation|screenSize"
             android:fitsSystemWindows="true"
+            android:finishOnTaskLaunch="true"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:theme="@style/LoginTheme">

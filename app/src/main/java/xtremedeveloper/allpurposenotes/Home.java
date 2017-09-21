@@ -87,25 +87,24 @@ public class Home extends AppCompatActivity
         notePager.setOffscreenPageLimit(3);
         notePager.setPageTransformer(false, new CarouselEffectTransformer(this));
         notePager.setAdapter(new MyPagerAdapter(Home.this,note_title,notes_type));
-
         userId=auth.getCurrentUser().getUid();
         receiveProfile();
     }
     public void receiveProfile()
     {
-        String json = pref.getString("user_details", "");
+        String json = pref.getString(userId+"user_details", "");
         user = (new Gson()).fromJson(json, user_details.class);
         if(user!=null) {userName=user.getfname()+" "+user.getlname();display_name.setText(userName);getDP();}
         else
         {
             fdb= FirebaseDatabase.getInstance().getReference("user_details");
-            fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+            fdb.child(userId).addValueEventListener(new ValueEventListener() {
                 @SuppressLint("ApplySharedPref")
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     user = dataSnapshot.getValue(user_details.class);
                     SharedPreferences.Editor prefsEditor = pref.edit();
-                    prefsEditor.putString("user_details", new Gson().toJson(user));
+                    prefsEditor.putString(userId+"user_details", new Gson().toJson(user));
                     prefsEditor.commit();receiveProfile();
                 }
                 @Override
@@ -120,13 +119,13 @@ public class Home extends AppCompatActivity
         if(!rootPath.exists()){rootPath.mkdirs();}
         profile_menu.setImageResource(R.mipmap.boy);loading_profile.setVisibility(View.VISIBLE);
         if(user.getgender().equals("SHE")){profile_menu.setImageResource(R.mipmap.girl);}
-        profile_pic=decodeBase64(pref.getString("profile_pic",""));
+        profile_pic=decodeBase64(pref.getString(userId+"profile_pic",""));
         if(profile_pic!=null) {
             profile_menu.setImageBitmap(profile_pic);menu_cover.setImageBitmap(profile_pic);
             loading_profile.setVisibility(View.GONE);}
         else
         {
-            fbs = FirebaseStorage.getInstance().getReference().child("UserDP/"+auth.getCurrentUser().getUid()+".jpg");
+            fbs = FirebaseStorage.getInstance().getReference().child("UserDP/"+userId+".jpg");
             final File localFile = new File(rootPath,"picture.jpg");
             fbs.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
                 @SuppressLint("ApplySharedPref")
@@ -134,7 +133,7 @@ public class Home extends AppCompatActivity
                 public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
                     Bitmap bitmap = BitmapFactory.decodeFile(localFile.toString(), new BitmapFactory.Options());
                     SharedPreferences.Editor editor = pref.edit();
-                    editor.putString("profile_pic", encodeTobase64(bitmap));
+                    editor.putString(userId+"profile_pic", encodeTobase64(bitmap));
                     editor.commit();
                     if (!localFile.delete()){localFile.delete();}
                     getDP();

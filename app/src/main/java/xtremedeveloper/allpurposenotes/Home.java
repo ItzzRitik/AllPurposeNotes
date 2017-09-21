@@ -88,19 +88,14 @@ public class Home extends AppCompatActivity
         notePager.setPageTransformer(false, new CarouselEffectTransformer(this));
         notePager.setAdapter(new MyPagerAdapter(Home.this,note_title,notes_type));
 
-        userName=auth.getCurrentUser().getDisplayName();
         userId=auth.getCurrentUser().getUid();
-        Toast.makeText(this, userName+" , "+userId, Toast.LENGTH_SHORT).show();
-        String userDataFolder=userName.substring(0,userName.indexOf(' '))+userId.substring(0,userId.length()/3);
-        rootPath = new File(getCacheDir(),"UserData/"+userDataFolder);
-        if(!rootPath.exists()){rootPath.mkdirs();}
         receiveProfile();
     }
     public void receiveProfile()
     {
         String json = pref.getString("user_details", "");
         user = (new Gson()).fromJson(json, user_details.class);
-        if(user!=null) {display_name.setText(auth.getCurrentUser().getDisplayName());getDP();}
+        if(user!=null) {userName=user.getfname()+" "+user.getlname();display_name.setText(userName);getDP();}
         else
         {
             fdb= FirebaseDatabase.getInstance().getReference("user_details");
@@ -120,6 +115,9 @@ public class Home extends AppCompatActivity
     }
     public void getDP()
     {
+        String userDataFolder=userName.substring(0,userName.indexOf(' '))+userId.substring(0,userId.length()/3);
+        rootPath = new File(getCacheDir(),"AllPurposeNotes/"+userDataFolder);
+        if(!rootPath.exists()){rootPath.mkdirs();}
         profile_menu.setImageResource(R.mipmap.boy);loading_profile.setVisibility(View.VISIBLE);
         if(user.getgender().equals("SHE")){profile_menu.setImageResource(R.mipmap.girl);}
         profile_pic=decodeBase64(pref.getString("profile_pic",""));

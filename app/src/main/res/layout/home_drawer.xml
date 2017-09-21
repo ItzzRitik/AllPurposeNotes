@@ -6,9 +6,9 @@
     android:background="#232323">
     <ImageView
         android:layout_width="match_parent"
+        android:id="@+id/menu_cover"
         android:layout_height="250dp"
         android:layout_marginTop="00dp"
-        android:src="@mipmap/tony"
         android:layout_alignParentTop="true"
         android:scaleType="centerCrop"/>
     <RelativeLayout
@@ -27,7 +27,6 @@
                 android:layout_width="120dp"
                 android:layout_height="120dp"
                 android:id="@+id/profile_menu"
-                android:src="@mipmap/tony"
                 android:layout_centerInParent="true"
                 app:civ_border_width="0dp"
                 app:civ_shadow="false"/>
@@ -45,6 +44,6 @@
             android:textSize="33sp"
             android:textStyle="normal"
             android:lineSpacingExtra="-10sp"
-            android:text="Ritik Srivastava"/>
+            android:text=""/>
     </RelativeLayout>
 </RelativeLayout>

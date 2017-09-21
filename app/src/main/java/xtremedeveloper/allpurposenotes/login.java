@@ -179,7 +179,7 @@ public class login extends AppCompatActivity
                     {
                         case KeyEvent.KEYCODE_DPAD_CENTER:
                         case KeyEvent.KEYCODE_ENTER:
-                            if(logs==0){performSignIn();}
+                            if(logs==0 &&isEmailValid(email.getText().toString())){performSignIn();}
                             return true;
                         default:break;
                     }
@@ -289,7 +289,7 @@ public class login extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 sign_dialog.setVisibility(View.VISIBLE);vibrate(20);
-                FirebaseAuth.getInstance().sendPasswordResetEmail(email.getText().toString())
+                auth.sendPasswordResetEmail(email.getText().toString())
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
@@ -614,7 +614,8 @@ public class login extends AppCompatActivity
                             else
                             {
                                 if (auth.getCurrentUser().isEmailVerified()) {
-                                    Toast.makeText(login.this, "Done", Toast.LENGTH_SHORT).show();
+                                    Intent home=new Intent(login.this,Home.class);email_reset.performClick();
+                                    startActivity(home);
                                 }
                                 else
                                     {
@@ -762,16 +763,7 @@ public class login extends AppCompatActivity
         fdb= FirebaseDatabase.getInstance().getReference("user_details");
         fdb.child(auth.getCurrentUser().getUid())
                 .setValue(new user_details(f_name.getText().toString(),l_name.getText().toString(),gender_text.getText().toString(),dob.getText().toString()));
-        /*fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                user_details user = dataSnapshot.getValue(user_details.class);
-                Toast.makeText(login.this,user.getfname()+"  "+user.getlname()+"\n"+user.getgender()+"\n"+user.getdob(), Toast.LENGTH_SHORT).show();
-            }
-            @Override
-            public void onCancelled(DatabaseError error) {}
-        });*/
-        dp_Loader.setVisibility(View.GONE);
+        dp_Loader.setVisibility(View.GONE);email_reset.performClick();
         Intent home=new Intent(login.this,Home.class);
         startActivity(home);
     }

@@ -794,9 +794,8 @@ public class login extends AppCompatActivity
         dp_Loader.setVisibility(View.GONE);
         SharedPreferences.Editor prefsEditor = pref.edit();
         prefsEditor.putString(auth.getCurrentUser().getUid()+"user_details", new Gson().toJson(user));
-        prefsEditor.commit();
-        Intent home=new Intent(login.this,Home.class);
-        startActivity(home);finish();
+        prefsEditor.commit();email_reset.performClick();
+        new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},200);
     }
     public void closeCam()
     {

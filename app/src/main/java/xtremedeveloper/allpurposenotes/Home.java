@@ -1,6 +1,7 @@
 package xtremedeveloper.allpurposenotes;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -79,6 +80,13 @@ public class Home extends AppCompatActivity
         display_name.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/exo2.ttf"));
 
         profile_menu=(ImageView)findViewById(R.id.profile_menu);
+        profile_menu.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                auth.signOut();startActivity(new Intent(Home.this,login.class));finish();
+                return false;
+            }
+        });
         menu_cover=(ImageView)findViewById(R.id.menu_cover);
 
 

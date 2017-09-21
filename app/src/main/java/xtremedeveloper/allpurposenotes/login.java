@@ -312,6 +312,8 @@ public class login extends AppCompatActivity
                 scaleY(48,login_div);scaleY(0,forget_pass);email_reset.setVisibility(View.GONE);email.setEnabled(true);
                 pass.setText("");con_pass.setText("");signin.setText(getString(R.string.next));setButtonEnabled(true);logs=0;vibrate(20);
                 email.setVisibility(View.VISIBLE);pass.setVisibility(View.GONE);con_pass.setVisibility(View.GONE);
+                sign_dialog.setVisibility(View.GONE);
+
             }
         });
 

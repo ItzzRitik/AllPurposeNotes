@@ -2,10 +2,12 @@ package xtremedeveloper.allpurposenotes;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -70,6 +72,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.google.gson.Gson;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.sdsmdg.kd.trianglify.models.Palette;
 import com.sdsmdg.kd.trianglify.views.TrianglifyView;
@@ -79,6 +82,9 @@ import com.yalantis.ucrop.UCrop;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
@@ -109,6 +115,7 @@ public class login extends AppCompatActivity
     UCrop.Options options;
     Bitmap profile_dp=null;
     ProgressBar dp_Loader;
+    SharedPreferences pref;
     @Override
     protected void onResume() {
         super.onResume();
@@ -153,6 +160,7 @@ public class login extends AppCompatActivity
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         setContentView(R.layout.activity_login);
         auth = FirebaseAuth.getInstance();
+        pref = getPreferences(MODE_PRIVATE);
         toolTip = new ToolTipsManager();
         parentPanel=(RelativeLayout) findViewById(R.id.parentPanel);
         email=(EditText)findViewById(R.id.email);
@@ -552,19 +560,14 @@ public class login extends AppCompatActivity
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run()
-                    {
-                        anim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_trans);
-                        splash_cover.setVisibility(View.GONE);
-                        ico_splash.setImageResource(R.mipmap.logo);
-                        Animation anima = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_reveal);
-                        logo_div.setVisibility(View.VISIBLE);logo_div.startAnimation(anima);ico_splash.startAnimation(anim);
-                        new Handler().postDelayed(new Runnable() {@Override public void run() {scaleY(48,login_div);}},800);
-                    }},1000);
+                anim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_trans);
+                splash_cover.setVisibility(View.GONE);
+                ico_splash.setImageResource(R.mipmap.logo);
+                Animation anima = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_reveal);
+                logo_div.setVisibility(View.VISIBLE);logo_div.startAnimation(anima);ico_splash.startAnimation(anim);
+                new Handler().postDelayed(new Runnable() {@Override public void run() {scaleY(48,login_div);}},800);
             }
-        },500);
+        },1500);
     }
     public void performSignIn()
     {
@@ -615,15 +618,38 @@ public class login extends AppCompatActivity
                             }
                             else
                             {
-                                if (auth.getCurrentUser().isEmailVerified()) {
-                                    Intent home=new Intent(login.this,Home.class);email_reset.performClick();
-                                    startActivity(home);
-                                }
-                                else
-                                    {
-                                        setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
-                                        sendVerification();
-                                }
+                                fdb= FirebaseDatabase.getInstance().getReference("user_details");
+                                fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        try
+                                        {
+                                            dataSnapshot.getValue(user_details.class);
+                                            Intent home=new Intent(login.this,Home.class);email_reset.performClick();
+                                            startActivity(home);
+                                        }
+                                        catch (NullPointerException e)
+                                        {
+                                            new Handler().postDelayed(new Runnable() {
+                                                @Override
+                                                public void run()
+                                                {
+                                                    ToolTip.Builder builder = new ToolTip.Builder(login.this, profile,parentPanel, getString(R.string.add_dp), ToolTip.POSITION_ABOVE);
+                                                    builder.setBackgroundColor(getColor(R.color.profile));
+                                                    builder.setTextColor(getColor(R.color.profile_text));
+                                                    builder.setGravity(ToolTip.GRAVITY_CENTER);
+                                                    builder.setTextSize(15);
+                                                    toolTip.show(builder.build());
+                                                }},7000);
+                                            new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(profile);}},9700);
+                                            setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
+                                            sendVerification();
+                                        }
+                                        catch (Exception e) {}
+                                    }
+                                    @Override
+                                    public void onCancelled(DatabaseError error) {}
+                                });
                             }
                         }
                     });
@@ -760,14 +786,22 @@ public class login extends AppCompatActivity
             upload_data();
         }
     }
+    @SuppressLint("ApplySharedPref")
     public void upload_data()
     {
+        user_details user=new user_details(f_name.getText().toString(),l_name.getText().toString(),gender_text.getText().toString(),dob.getText().toString());
         fdb= FirebaseDatabase.getInstance().getReference("user_details");
-        fdb.child(auth.getCurrentUser().getUid())
-                .setValue(new user_details(f_name.getText().toString(),l_name.getText().toString(),gender_text.getText().toString(),dob.getText().toString()));
+        fdb.child(auth.getCurrentUser().getUid()).setValue(user);
         dp_Loader.setVisibility(View.GONE);email_reset.performClick();
-        Intent home=new Intent(login.this,Home.class);
-        startActivity(home);
+        SharedPreferences.Editor prefsEditor = pref.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(user);
+        prefsEditor.putString("user_details", json);
+        prefsEditor.commit();
+        new Handler().postDelayed(new Runnable() {@Override public void run() {
+            Intent home=new Intent(login.this,Home.class);
+            startActivity(home);
+        }},2000);
     }
     public void closeCam()
     {
@@ -843,8 +877,7 @@ public class login extends AppCompatActivity
                 }
             }},4000);
         new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(gender_swap);}},6700);
-
-                new Handler().postDelayed(new Runnable() {
+        new Handler().postDelayed(new Runnable() {
             @Override
             public void run()
             {

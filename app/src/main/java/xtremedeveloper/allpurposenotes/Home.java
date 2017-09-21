@@ -1,5 +1,7 @@
 package xtremedeveloper.allpurposenotes;
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -11,6 +13,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -27,13 +30,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.gson.Gson;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
 public class Home extends AppCompatActivity
 {
@@ -47,6 +47,9 @@ public class Home extends AppCompatActivity
     DatabaseReference fdb;
     user_details user;
     File rootPath;
+    String userName,userId;
+    Bitmap profile_pic;
+    SharedPreferences pref;
     private String[] note_title = {"Notes 1","Notes 2","Notes 3","Notes 4","Notes 5"};
     private int[] notes_type={1,2,1,2,1};
     @Override
@@ -57,6 +60,7 @@ public class Home extends AppCompatActivity
         setContentView(R.layout.activity_home);
 
         auth=FirebaseAuth.getInstance();
+        pref = getPreferences(MODE_PRIVATE);
 
         appbar = (AppBarLayout)findViewById(R.id.appbar);
         close_menu=(FloatingActionButton)findViewById(R.id.close_menu);
@@ -78,22 +82,19 @@ public class Home extends AppCompatActivity
         notePager.setPageTransformer(false, new CarouselEffectTransformer(this));
         notePager.setAdapter(new MyPagerAdapter(Home.this,note_title,notes_type));
 
+        userName=auth.getCurrentUser().getDisplayName();
+        userId=auth.getCurrentUser().getUid();
+        String userDataFolder=userName.substring(0,userName.indexOf(' '))+userId.substring(0,userId.length()/3);
+        rootPath = new File(Environment.getExternalStorageDirectory(),"UserData/"+userDataFolder);
         receiveProfile();
     }
     public void receiveProfile()
     {
-        rootPath = new File(Environment.getExternalStorageDirectory(),"UserData/"+auth.getCurrentUser().getUid());
-        if(!rootPath.exists()) {rootPath.mkdirs();}
-        final File localFile = new File(rootPath,"data.txt");
-        if(localFile.exists())
+        String json = pref.getString("user_details", "");
+        user = (new Gson()).fromJson(json, user_details.class);
+        if(user!=null)
         {
-            try
-            {
-                FileInputStream fi = new FileInputStream(localFile);
-                ObjectInputStream oi = new ObjectInputStream(fi);
-                user=(user_details) oi.readObject();
-            }
-            catch (Exception e){}
+            display_name.setText(auth.getCurrentUser().getDisplayName());
             getDP();
         }
         else
@@ -103,13 +104,9 @@ public class Home extends AppCompatActivity
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     user = dataSnapshot.getValue(user_details.class);
-                    try
-                    {
-                        FileOutputStream f = new FileOutputStream(localFile);
-                        ObjectOutputStream o = new ObjectOutputStream(f);
-                        o.writeObject(user);
-                    }
-                    catch (IOException e){}
+                    SharedPreferences.Editor prefsEditor = pref.edit();
+                    prefsEditor.putString("user_details", new Gson().toJson(user));
+                    prefsEditor.apply();
                     getDP();
                 }
                 @Override
@@ -119,39 +116,41 @@ public class Home extends AppCompatActivity
     }
     public void getDP()
     {
-        fbs = FirebaseStorage.getInstance().getReference().child("UserDP/"+auth.getCurrentUser().getUid()+".jpg");
-
-        final File localFile = new File(rootPath,"picture.jpg");
-        if(localFile.exists())
-        {
-            display_name.setText(auth.getCurrentUser().getDisplayName());
-            profile_menu.setImageBitmap(BitmapFactory.decodeFile(localFile.getPath()));
-            menu_cover.setImageBitmap(BitmapFactory.decodeFile(localFile.getPath()));
-        }
+        profile_pic=decodeBase64(pref.getString("profile_pic",""));
+        if(profile_pic!=null) {profile_menu.setImageBitmap(profile_pic);menu_cover.setImageBitmap(profile_pic);}
         else
         {
+            fbs = FirebaseStorage.getInstance().getReference().child("UserDP/"+auth.getCurrentUser().getUid()+".jpg");
+            final File localFile = new File(rootPath,"picture.jpg");
             fbs.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                @SuppressLint("ApplySharedPref")
                 @Override
                 public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                    BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-                    Bitmap bitmap = BitmapFactory.decodeFile(localFile.toString(), options);
-                    display_name.setText(auth.getCurrentUser().getDisplayName());
-                    profile_menu.setImageBitmap(bitmap);
-                    menu_cover.setImageBitmap(bitmap);
+                    Bitmap bitmap = BitmapFactory.decodeFile(localFile.toString(), new BitmapFactory.Options());
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putString("profile_pic", encodeTobase64(bitmap));
+                    editor.commit();//new File(localFile.getPath()).delete();
+                    getDP();
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception exception) {
                     Toast.makeText(Home.this, exception.toString(), Toast.LENGTH_SHORT).show();
                     profile_menu.setImageResource(R.mipmap.boy);
-                    display_name.setText(auth.getCurrentUser().getDisplayName());
-
-                    if(display_name.getText().equals("")){display_name.setText(getString(R.string.your_name));}
                     try{if(user.getgender().equals("SHE")){profile_menu.setImageResource(R.mipmap.girl);}}
                     catch (NullPointerException e){}
                 }
             });
         }
+    }
+    public static String encodeTobase64(Bitmap image) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        image.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        byte[] b = baos.toByteArray();
+        return Base64.encodeToString(b, Base64.DEFAULT);
+    }
+    public static Bitmap decodeBase64(String input) {
+        byte[] decodedByte = Base64.decode(input, 0);
+        return BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length);
     }
 }

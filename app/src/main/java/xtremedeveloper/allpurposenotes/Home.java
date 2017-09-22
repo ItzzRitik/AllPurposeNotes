@@ -55,8 +55,8 @@ public class Home extends AppCompatActivity
     Bitmap profile_pic;
     SharedPreferences pref;
     ProgressBar loading_profile;
-    private String[] note_title = {"Notes 1","Notes 2","Notes 3","Notes 4","Notes 5"};
-    private int[] notes_type={1,2,1,2,1};
+    private String[] note_title = {"Notes 1","Notes 2","Notes 3","Notes 4","Notes 5","Notes 6","Notes 7","Notes 8"};
+    private int[] notes_type={1,2,1,2,1,2,1,2};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,7 +65,7 @@ public class Home extends AppCompatActivity
         setContentView(R.layout.activity_home);
 
         auth=FirebaseAuth.getInstance();
-        pref = getSharedPreferences("app_settings",0);
+        pref = getSharedPreferences("app_settings",Context.MODE_PRIVATE);
 
         loading_profile=(ProgressBar)findViewById(R.id.loading_profile);
         loading_profile.getIndeterminateDrawable().setColorFilter(getColor(R.color.profile_text), PorterDuff.Mode.MULTIPLY);

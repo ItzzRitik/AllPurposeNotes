@@ -35,5 +35,18 @@
         android:layout_margin="20dp"
         app:layout_anchorGravity="bottom|center"
         app:srcCompat="@drawable/arrow_up" />
-
+    <android.support.v4.view.ViewPager
+        android:id="@+id/notesPager"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        app:layout_anchor="@id/appbar"
+        app:layout_anchorGravity="bottom|center"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp"
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="100dp"/>
 </android.support.design.widget.CoordinatorLayout>

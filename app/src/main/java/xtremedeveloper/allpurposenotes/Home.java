@@ -65,7 +65,7 @@ public class Home extends AppCompatActivity
         setContentView(R.layout.activity_home);
 
         auth=FirebaseAuth.getInstance();
-        pref = getPreferences(MODE_PRIVATE);
+        pref = getSharedPreferences("app_settings",0);
 
         loading_profile=(ProgressBar)findViewById(R.id.loading_profile);
         loading_profile.getIndeterminateDrawable().setColorFilter(getColor(R.color.profile_text), PorterDuff.Mode.MULTIPLY);
@@ -93,7 +93,7 @@ public class Home extends AppCompatActivity
         notePager= (ViewPager) findViewById(R.id.notesPager);
         notePager.setClipChildren(false);
         notePager.setOffscreenPageLimit(3);
-        notePager.setPageTransformer(false, new CarouselEffectTransformer(this));
+        notePager.setPageTransformer(false, new CarouselMenuTransformer(this));
         notePager.setAdapter(new MyPagerAdapter(Home.this,note_title,notes_type));
         userId=auth.getCurrentUser().getUid();
         receiveProfile();

@@ -98,6 +98,7 @@ public class login extends AppCompatActivity
     RelativeLayout camera_pane,parentPanel,click_pane,galary;
     Animation anim;
     boolean isDP_added =false,camStarted=false,camOn=false,galaryOn=false,isflash=false,isBack=false,profile_lp=false;
+    boolean loginStarted=false;
     EditText email,pass,con_pass,f_name,l_name,dob;
     int logs=0;
     TrianglifyView backG;
@@ -117,18 +118,26 @@ public class login extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        if (ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
-        {if(!camStarted){cameraView.start();camStarted=true;}}
-        new Handler().postDelayed(new Runnable() {@Override public void run()
+        if(loginStarted)
         {
-            click.setVisibility(View.VISIBLE);
-            Animation anim = AnimationUtils.loadAnimation(login.this, R.anim.click_grow);click.startAnimation(anim);
-        }},500);
+            if (ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
+            {if(!camStarted){cameraView.start();camStarted=true;}}
+            new Handler().postDelayed(new Runnable() {@Override public void run()
+            {
+                click.setVisibility(View.VISIBLE);
+                Animation anim = AnimationUtils.loadAnimation(login.this, R.anim.click_grow);click.startAnimation(anim);
+            }},500);
+        }
+
     }
     @Override
     protected void onPause() {
-        if(camStarted){cameraView.stop();camStarted=false;}
-        super.onPause();click.setVisibility(View.INVISIBLE);
+        super.onPause();
+        if (loginStarted)
+        {
+            if(camStarted){cameraView.stop();camStarted=false;}
+            super.onPause();click.setVisibility(View.INVISIBLE);
+        }
     }
     @Override
     public void onBackPressed() {
@@ -156,420 +165,428 @@ public class login extends AppCompatActivity
         super.onCreate(savedInstanceState);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
-        if(FirebaseAuth.getInstance().getCurrentUser()!=null){Intent home=new Intent(login.this,Home.class);startActivity(home);finish();}
-        else
+        auth = FirebaseAuth.getInstance();
+        pref = getSharedPreferences("app_settings",0);
+        if(auth.getCurrentUser()!=null)
         {
-            setContentView(R.layout.activity_login);
-            auth = FirebaseAuth.getInstance();
-            pref = getPreferences(MODE_PRIVATE);
-            toolTip = new ToolTipsManager();
-            parentPanel=(RelativeLayout) findViewById(R.id.parentPanel);
-            email=(EditText)findViewById(R.id.email);
-            email.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override
-                public void afterTextChanged(Editable s) {}
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count)
-                {
-                    if(isEmailValid(email.getText().toString()))
-                    {setButtonEnabled(true);}
-                    else{setButtonEnabled(false);}
-                }
-            });
-            email.setOnKeyListener(new View.OnKeyListener()
+            String json = pref.getString(auth.getCurrentUser().getUid()+"user_details", "");
+            user_details userx = (new Gson()).fromJson(json, user_details.class);
+            if(userx!=null){startActivity(new Intent(login.this,Home.class));finish();}
+            else {createActivity();}
+        }
+        else{createActivity();}
+    }
+    public void createActivity()
+    {
+        loginStarted=true;
+        setContentView(R.layout.activity_login);
+        toolTip = new ToolTipsManager();
+        parentPanel=(RelativeLayout) findViewById(R.id.parentPanel);
+        email=(EditText)findViewById(R.id.email);
+        email.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void afterTextChanged(Editable s) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count)
             {
-                public boolean onKey(View v, int keyCode, KeyEvent event)
-                {
-                    if (event.getAction() == KeyEvent.ACTION_DOWN)
-                    {
-                        switch (keyCode)
-                        {
-                            case KeyEvent.KEYCODE_DPAD_CENTER:
-                            case KeyEvent.KEYCODE_ENTER:
-                                if(logs==0 &&isEmailValid(email.getText().toString())){performSignIn();}
-                                return true;
-                            default:break;
-                        }
-                    }
-                    return false;
-                }
-            });
-
-            pass=(EditText)findViewById(R.id.pass);
-            pass.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override
-                public void afterTextChanged(Editable s) {}
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count)
-                {
-                    con_pass.setText("");
-                    if(pass.getText().length()>=6)
-                    {
-                        pass.setCompoundDrawablesWithIntrinsicBounds(R.drawable.password_ok,0,0,0);
-                        if(logs==1){setButtonEnabled(true);}
-                        else if(logs==2){con_pass.setEnabled(true);}
-                    }
-                    else
-                    {
-                        pass.setCompoundDrawablesWithIntrinsicBounds(R.drawable.password_nok,0,0,0);
-                        if(logs==1){setButtonEnabled(false);}
-                        else if(logs==2){con_pass.setText("");con_pass.setEnabled(false);}
-                    }
-                }
-            });
-            pass.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    switch (event.getAction()) {
-                        case MotionEvent.ACTION_DOWN:
-                            pass.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
-                            con_pass.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
-                            break;
-                        case MotionEvent.ACTION_UP:
-                            pass.setTransformationMethod(PasswordTransformationMethod.getInstance());
-                            con_pass.setTransformationMethod(PasswordTransformationMethod.getInstance());
-                            break;
-                    }
-                    return false;
-                }
-            });
-            pass.setOnKeyListener(new View.OnKeyListener()
+                if(isEmailValid(email.getText().toString()))
+                {setButtonEnabled(true);}
+                else{setButtonEnabled(false);}
+            }
+        });
+        email.setOnKeyListener(new View.OnKeyListener()
+        {
+            public boolean onKey(View v, int keyCode, KeyEvent event)
             {
-                public boolean onKey(View v, int keyCode, KeyEvent event)
+                if (event.getAction() == KeyEvent.ACTION_DOWN)
                 {
-                    if (event.getAction() == KeyEvent.ACTION_DOWN)
+                    switch (keyCode)
                     {
-                        switch (keyCode)
-                        {
-                            case KeyEvent.KEYCODE_DPAD_CENTER:
-                            case KeyEvent.KEYCODE_ENTER:
-                                if(logs==1)
-                                {performSignIn();}
-                                return true;
-                            default:break;
-                        }
+                        case KeyEvent.KEYCODE_DPAD_CENTER:
+                        case KeyEvent.KEYCODE_ENTER:
+                            if(logs==0 &&isEmailValid(email.getText().toString())){performSignIn();}
+                            return true;
+                        default:break;
                     }
-                    return false;
                 }
-            });
+                return false;
+            }
+        });
 
-            con_pass=(EditText)findViewById(R.id.con_pass);
-            con_pass.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override
-                public void afterTextChanged(Editable s) {}
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count)
-                {
-                    if(logs==2)
-                    {
-                        if(con_pass.getText().toString().equals(pass.getText().toString()) && con_pass.getText().length()>=6)
-                        {con_pass.setCompoundDrawablesWithIntrinsicBounds(R.drawable.con_password_ok,0,0,0);setButtonEnabled(true);}
-                        else{con_pass.setCompoundDrawablesWithIntrinsicBounds(R.drawable.con_password_nok,0,0,0);setButtonEnabled(false);}
-                    }
-                }
-            });
-            con_pass.setOnKeyListener(new View.OnKeyListener()
+        pass=(EditText)findViewById(R.id.pass);
+        pass.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void afterTextChanged(Editable s) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count)
             {
-                public boolean onKey(View v, int keyCode, KeyEvent event)
+                con_pass.setText("");
+                if(pass.getText().length()>=6)
                 {
-                    if (event.getAction() == KeyEvent.ACTION_DOWN)
-                    {
-                        switch (keyCode)
-                        {
-                            case KeyEvent.KEYCODE_DPAD_CENTER:
-                            case KeyEvent.KEYCODE_ENTER:
-                                if(logs==2) {performSignIn();}
-                                return true;
-                            default:break;
-                        }
-                    }
-                    return false;
+                    pass.setCompoundDrawablesWithIntrinsicBounds(R.drawable.password_ok,0,0,0);
+                    if(logs==1){setButtonEnabled(true);}
+                    else if(logs==2){con_pass.setEnabled(true);}
                 }
-            });
+                else
+                {
+                    pass.setCompoundDrawablesWithIntrinsicBounds(R.drawable.password_nok,0,0,0);
+                    if(logs==1){setButtonEnabled(false);}
+                    else if(logs==2){con_pass.setText("");con_pass.setEnabled(false);}
+                }
+            }
+        });
+        pass.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        pass.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                        con_pass.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        pass.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                        con_pass.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                        break;
+                }
+                return false;
+            }
+        });
+        pass.setOnKeyListener(new View.OnKeyListener()
+        {
+            public boolean onKey(View v, int keyCode, KeyEvent event)
+            {
+                if (event.getAction() == KeyEvent.ACTION_DOWN)
+                {
+                    switch (keyCode)
+                    {
+                        case KeyEvent.KEYCODE_DPAD_CENTER:
+                        case KeyEvent.KEYCODE_ENTER:
+                            if(logs==1)
+                            {performSignIn();}
+                            return true;
+                        default:break;
+                    }
+                }
+                return false;
+            }
+        });
 
-            forget_pass =(RelativeLayout)findViewById(R.id.forget_pass);
-            forget_pass.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    sign_dialog.setVisibility(View.VISIBLE);vibrate(20);
-                    auth.sendPasswordResetEmail(email.getText().toString())
-                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        sign_dialog.setVisibility(View.GONE);email_reset.performClick();
-                                        Toast.makeText(login.this,getString(R.string.pass_reset), Toast.LENGTH_SHORT).show();
-                                    }
-                                    else
-                                    {
-                                        Toast.makeText(login.this,getString(R.string.error), Toast.LENGTH_SHORT).show();
-                                    }
+        con_pass=(EditText)findViewById(R.id.con_pass);
+        con_pass.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void afterTextChanged(Editable s) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count)
+            {
+                if(logs==2)
+                {
+                    if(con_pass.getText().toString().equals(pass.getText().toString()) && con_pass.getText().length()>=6)
+                    {con_pass.setCompoundDrawablesWithIntrinsicBounds(R.drawable.con_password_ok,0,0,0);setButtonEnabled(true);}
+                    else{con_pass.setCompoundDrawablesWithIntrinsicBounds(R.drawable.con_password_nok,0,0,0);setButtonEnabled(false);}
+                }
+            }
+        });
+        con_pass.setOnKeyListener(new View.OnKeyListener()
+        {
+            public boolean onKey(View v, int keyCode, KeyEvent event)
+            {
+                if (event.getAction() == KeyEvent.ACTION_DOWN)
+                {
+                    switch (keyCode)
+                    {
+                        case KeyEvent.KEYCODE_DPAD_CENTER:
+                        case KeyEvent.KEYCODE_ENTER:
+                            if(logs==2) {performSignIn();}
+                            return true;
+                        default:break;
+                    }
+                }
+                return false;
+            }
+        });
+
+        forget_pass =(RelativeLayout)findViewById(R.id.forget_pass);
+        forget_pass.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sign_dialog.setVisibility(View.VISIBLE);vibrate(20);
+                auth.sendPasswordResetEmail(email.getText().toString())
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    sign_dialog.setVisibility(View.GONE);email_reset.performClick();
+                                    Toast.makeText(login.this,getString(R.string.pass_reset), Toast.LENGTH_SHORT).show();
                                 }
-                            });
-                }
-            });
-            email_reset=(RelativeLayout)findViewById(R.id.email_reset);
-            email_reset.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    scaleY(48,login_div);scaleY(0,forget_pass);email_reset.setVisibility(View.GONE);email.setEnabled(true);
-                    pass.setText("");con_pass.setText("");signin.setText(getString(R.string.next));setButtonEnabled(true);logs=0;vibrate(20);
-                    email.setVisibility(View.VISIBLE);pass.setVisibility(View.GONE);con_pass.setVisibility(View.GONE);
-                    sign_dialog.setVisibility(View.GONE);
-
-                }
-            });
-
-            f_name=(EditText)findViewById(R.id.f_name);
-            f_name.addTextChangedListener(new TextWatcher() {
-                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
-                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override public void afterTextChanged(Editable s) {final_signUp();}
-            });
-            l_name=(EditText)findViewById(R.id.l_name);
-            dob=(EditText)findViewById(R.id.dob);
-            dob.addTextChangedListener(new TextWatcher() {
-                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
-                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override public void afterTextChanged(Editable s) {final_signUp();}
-            });
-            divider3=findViewById(R.id.divider3);
-            divider4=findViewById(R.id.divider4);
-            divider5=findViewById(R.id.divider5);
-            dob_chooser=(ImageView)findViewById(R.id.dob_chooser);
-            dob_chooser.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    vibrate(20);
-                    DatePickerDialog dd = new DatePickerDialog(login.this,
-                            new DatePickerDialog.OnDateSetListener() {
-                                @Override
-                                public void onDateSet(DatePicker view, int year,
-                                                      int monthOfYear, int dayOfMonth) {
-                                    try {
-                                        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-                                        String dateInString = dayOfMonth + "/" + (monthOfYear + 1) + "/" + year;
-                                        Date date = formatter.parse(dateInString);
-                                        formatter = new SimpleDateFormat("dd/MM/yyyy");
-                                        dob.setText(formatter.format(date));
-                                    } catch (Exception ex) {}
+                                else
+                                {
+                                    Toast.makeText(login.this,getString(R.string.error), Toast.LENGTH_SHORT).show();
                                 }
-                            }, 2000,  Calendar.getInstance().get(Calendar.MONTH),  Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
-                    dd.show();
-                }
-            });
+                            }
+                        });
+            }
+        });
+        email_reset=(RelativeLayout)findViewById(R.id.email_reset);
+        email_reset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                scaleY(48,login_div);scaleY(0,forget_pass);email_reset.setVisibility(View.GONE);email.setEnabled(true);
+                pass.setText("");con_pass.setText("");signin.setText(getString(R.string.next));setButtonEnabled(true);logs=0;vibrate(20);
+                email.setVisibility(View.VISIBLE);pass.setVisibility(View.GONE);con_pass.setVisibility(View.GONE);
+                sign_dialog.setVisibility(View.GONE);
 
-            verify_l1=(TextView)findViewById(R.id.verify_l1);
-            verify_l2=(TextView)findViewById(R.id.verify_l2);
-            verify_l4=(TextView)findViewById(R.id.verify_l4);
-            verify_l4.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    resendVerification();
-                }
-            });
-            gender_text=(TextView)findViewById(R.id.gender_text);
-            gender_text.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/vdub.ttf"));
+            }
+        });
 
-            cameraView=(CameraView)findViewById(R.id.cam);
-            options=new UCrop.Options();
-            options.setCircleDimmedLayer(true);
-            options.setShowCropFrame(false);
-            options.setCropGridColumnCount(0);
-            options.setCropGridRowCount(0);
-            options.setToolbarColor(ContextCompat.getColor(login.this, R.color.colorPrimary));
-            options.setStatusBarColor(ContextCompat.getColor(login.this, R.color.colorPrimary));
-            options.setActiveWidgetColor(ContextCompat.getColor(login.this, R.color.colorPrimary));
-            cameraView.setCameraListener(new CameraListener() {
-                @Override
-                public void onPictureTaken(final byte[] picture) {
-                    super.onPictureTaken(picture);
-                    Bitmap result = BitmapFactory.decodeByteArray(picture, 0, picture.length);
-                    if(!isBack)
+        f_name=(EditText)findViewById(R.id.f_name);
+        f_name.addTextChangedListener(new TextWatcher() {
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {final_signUp();}
+        });
+        l_name=(EditText)findViewById(R.id.l_name);
+        dob=(EditText)findViewById(R.id.dob);
+        dob.addTextChangedListener(new TextWatcher() {
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {final_signUp();}
+        });
+        divider3=findViewById(R.id.divider3);
+        divider4=findViewById(R.id.divider4);
+        divider5=findViewById(R.id.divider5);
+        dob_chooser=(ImageView)findViewById(R.id.dob_chooser);
+        dob_chooser.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                vibrate(20);
+                DatePickerDialog dd = new DatePickerDialog(login.this,
+                        new DatePickerDialog.OnDateSetListener() {
+                            @Override
+                            public void onDateSet(DatePicker view, int year,
+                                                  int monthOfYear, int dayOfMonth) {
+                                try {
+                                    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+                                    String dateInString = dayOfMonth + "/" + (monthOfYear + 1) + "/" + year;
+                                    Date date = formatter.parse(dateInString);
+                                    formatter = new SimpleDateFormat("dd/MM/yyyy");
+                                    dob.setText(formatter.format(date));
+                                } catch (Exception ex) {}
+                            }
+                        }, 2000,  Calendar.getInstance().get(Calendar.MONTH),  Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+                dd.show();
+            }
+        });
+
+        verify_l1=(TextView)findViewById(R.id.verify_l1);
+        verify_l2=(TextView)findViewById(R.id.verify_l2);
+        verify_l4=(TextView)findViewById(R.id.verify_l4);
+        verify_l4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resendVerification();
+            }
+        });
+        gender_text=(TextView)findViewById(R.id.gender_text);
+        gender_text.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/vdub.ttf"));
+
+        cameraView=(CameraView)findViewById(R.id.cam);
+        options=new UCrop.Options();
+        options.setCircleDimmedLayer(true);
+        options.setShowCropFrame(false);
+        options.setCropGridColumnCount(0);
+        options.setCropGridRowCount(0);
+        options.setToolbarColor(ContextCompat.getColor(login.this, R.color.colorPrimary));
+        options.setStatusBarColor(ContextCompat.getColor(login.this, R.color.colorPrimary));
+        options.setActiveWidgetColor(ContextCompat.getColor(login.this, R.color.colorPrimary));
+        cameraView.setCameraListener(new CameraListener() {
+            @Override
+            public void onPictureTaken(final byte[] picture) {
+                super.onPictureTaken(picture);
+                Bitmap result = BitmapFactory.decodeByteArray(picture, 0, picture.length);
+                if(!isBack)
+                {
+                    Matrix matrix = new Matrix();
+                    matrix.postScale(-1, 1,result.getWidth()/2, result.getHeight()/2);
+                    result= Bitmap.createBitmap(result, 0, 0, result.getWidth(), result.getHeight(), matrix, true);
+                }
+                vibrate(20);
+                profile_path = MediaStore.Images.Media.insertImage(login.this.getContentResolver(), result, "Title", null);
+                UCrop.of(Uri.parse(profile_path),Uri.parse(profile_url)).withOptions(options).withAspectRatio(1,1)
+                        .withMaxResultSize(maxWidth, maxHeight).start(login.this);
+            }
+        });
+
+        permission_camera=(RelativeLayout)findViewById(R.id.permission_camera) ;
+        allow_camera =(Button)findViewById(R.id.allow_camera);
+        allow_camera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                vibrate(20);
+                ActivityCompat.requestPermissions(login.this,
+                        new String[]{android.Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.RECORD_AUDIO}, 1);
+            }
+        });
+        click_pane=(RelativeLayout)findViewById(R.id.click_pane);
+        galary=(RelativeLayout) findViewById(R.id.galary);
+        flash=(ImageView)findViewById(R.id.flash);
+        flash.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                vibrate(20);
+                if(!isflash){cameraView.setFlash(CameraKit.Constants.FLASH_ON);isflash=true;flash.setImageResource(R.drawable.flash_on);}
+                else {cameraView.setFlash(CameraKit.Constants.FLASH_OFF);isflash=false;flash.setImageResource(R.drawable.flash_off);}
+            }
+        });
+        camera_flip=(ImageView)findViewById(R.id.camera_flip);
+        camera_flip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                vibrate(20);
+                if(!isBack){cameraView.setFacing(CameraKit.Constants.FACING_BACK);isBack=true;}
+                else {cameraView.setFacing(CameraKit.Constants.FACING_FRONT);isBack=false;}
+            }
+        });
+        click=(ImageView)findViewById(R.id.click);
+        click.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                int cy=(int)(click.getY() + click.getHeight() / 2);galaryOn=true;vibrate(35);
+                animator = ViewAnimationUtils.createCircularReveal(galary,backG.getRight()/2,cy,0,backG.getHeight());
+                animator.setInterpolator(new AccelerateInterpolator());animator.setDuration(300);galary.setVisibility(View.VISIBLE);
+                Animation anim = AnimationUtils.loadAnimation(login.this, R.anim.fade_out);
+                galary.startAnimation(anim);
+                animator.start();
+
+                Intent intent = new Intent();
+                intent.setType("image/*");intent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 1);
+                overridePendingTransition(R.anim.slide_up,0);
+                return false;
+            }
+        });
+        click.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(camStarted){cameraView.captureImage();}
+            }
+        });
+        camera_pane=(RelativeLayout)findViewById(R.id.camera_pane);
+        dp_Loader=(ProgressBar) findViewById(R.id.dp_Loader);
+        dp_Loader.getIndeterminateDrawable().setColorFilter(getColor(R.color.profile_text), PorterDuff.Mode.MULTIPLY);
+        profile=(CircularImageView)findViewById(R.id.profile);
+        profile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(profile_lp) {profile_lp=false;}
+                else
+                {
+                    camera_pane.setVisibility(View.VISIBLE);permission_camera.setVisibility(View.VISIBLE);camOn=true;vibrate(20);
+                    int cy=(int)(profile.getY() + profile.getHeight() / 2);
+                    final Animator animator = ViewAnimationUtils.createCircularReveal(camera_pane,backG.getRight()/2,cy,0, backG.getHeight()*141/100);
+                    animator.setInterpolator(new AccelerateInterpolator());animator.setDuration(500);animator.start();
+                    if (ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                            ContextCompat.checkSelfPermission(login.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED &&
+                            ContextCompat.checkSelfPermission(login.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
                     {
-                        Matrix matrix = new Matrix();
-                        matrix.postScale(-1, 1,result.getWidth()/2, result.getHeight()/2);
-                        result= Bitmap.createBitmap(result, 0, 0, result.getWidth(), result.getHeight(), matrix, true);
+                        permission_camera.setVisibility(View.GONE);if(!camStarted){cameraView.start();camStarted=true;}
                     }
-                    vibrate(20);
-                    profile_path = MediaStore.Images.Media.insertImage(login.this.getContentResolver(), result, "Title", null);
-                    UCrop.of(Uri.parse(profile_path),Uri.parse(profile_url)).withOptions(options).withAspectRatio(1,1)
-                            .withMaxResultSize(maxWidth, maxHeight).start(login.this);
-                }
-            });
-
-            permission_camera=(RelativeLayout)findViewById(R.id.permission_camera) ;
-            allow_camera =(Button)findViewById(R.id.allow_camera);
-            allow_camera.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    vibrate(20);
-                    ActivityCompat.requestPermissions(login.this,
-                            new String[]{android.Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.RECORD_AUDIO}, 1);
-                }
-            });
-            click_pane=(RelativeLayout)findViewById(R.id.click_pane);
-            galary=(RelativeLayout) findViewById(R.id.galary);
-            flash=(ImageView)findViewById(R.id.flash);
-            flash.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    vibrate(20);
-                    if(!isflash){cameraView.setFlash(CameraKit.Constants.FLASH_ON);isflash=true;flash.setImageResource(R.drawable.flash_on);}
-                    else {cameraView.setFlash(CameraKit.Constants.FLASH_OFF);isflash=false;flash.setImageResource(R.drawable.flash_off);}
-                }
-            });
-            camera_flip=(ImageView)findViewById(R.id.camera_flip);
-            camera_flip.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    vibrate(20);
-                    if(!isBack){cameraView.setFacing(CameraKit.Constants.FACING_BACK);isBack=true;}
-                    else {cameraView.setFacing(CameraKit.Constants.FACING_FRONT);isBack=false;}
-                }
-            });
-            click=(ImageView)findViewById(R.id.click);
-            click.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    int cy=(int)(click.getY() + click.getHeight() / 2);galaryOn=true;vibrate(35);
-                    animator = ViewAnimationUtils.createCircularReveal(galary,backG.getRight()/2,cy,0,backG.getHeight());
-                    animator.setInterpolator(new AccelerateInterpolator());animator.setDuration(300);galary.setVisibility(View.VISIBLE);
-                    Animation anim = AnimationUtils.loadAnimation(login.this, R.anim.fade_out);
-                    galary.startAnimation(anim);
-                    animator.start();
-
-                    Intent intent = new Intent();
-                    intent.setType("image/*");intent.setAction(Intent.ACTION_GET_CONTENT);
-                    startActivityForResult(Intent.createChooser(intent, "Select Picture"), 1);
-                    overridePendingTransition(R.anim.slide_up,0);
-                    return false;
-                }
-            });
-            click.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if(camStarted){cameraView.captureImage();}
-                }
-            });
-            camera_pane=(RelativeLayout)findViewById(R.id.camera_pane);
-            dp_Loader=(ProgressBar) findViewById(R.id.dp_Loader);
-            dp_Loader.getIndeterminateDrawable().setColorFilter(getColor(R.color.profile_text), PorterDuff.Mode.MULTIPLY);
-            profile=(CircularImageView)findViewById(R.id.profile);
-            profile.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(profile_lp) {profile_lp=false;}
-                    else
+                    new Handler().postDelayed(new Runnable() {@Override public void run()
                     {
-                        camera_pane.setVisibility(View.VISIBLE);permission_camera.setVisibility(View.VISIBLE);camOn=true;vibrate(20);
-                        int cy=(int)(profile.getY() + profile.getHeight() / 2);
-                        final Animator animator = ViewAnimationUtils.createCircularReveal(camera_pane,backG.getRight()/2,cy,0, backG.getHeight()*141/100);
-                        animator.setInterpolator(new AccelerateInterpolator());animator.setDuration(500);animator.start();
-                        if (ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
-                                ContextCompat.checkSelfPermission(login.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED &&
-                                ContextCompat.checkSelfPermission(login.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
-                        {
-                            permission_camera.setVisibility(View.GONE);if(!camStarted){cameraView.start();camStarted=true;}
-                        }
+                        click.setVisibility(View.VISIBLE);
+                        Animation anim = AnimationUtils.loadAnimation(login.this, R.anim.click_grow);click.startAnimation(anim);
+                    }},500);
+                    if(ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                            ContextCompat.checkSelfPermission(login.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED &&
+                            ContextCompat.checkSelfPermission(login.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+                    {
                         new Handler().postDelayed(new Runnable() {@Override public void run()
                         {
-                            click.setVisibility(View.VISIBLE);
-                            Animation anim = AnimationUtils.loadAnimation(login.this, R.anim.click_grow);click.startAnimation(anim);
-                        }},500);
-                        if(ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
-                                ContextCompat.checkSelfPermission(login.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED &&
-                                ContextCompat.checkSelfPermission(login.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
-                        {
-                            new Handler().postDelayed(new Runnable() {@Override public void run()
-                            {
-                                ToolTip.Builder builder = new ToolTip.Builder(login.this, click,camera_pane, getString(R.string.open_galary), ToolTip.POSITION_ABOVE);
-                                builder.setBackgroundColor(getColor(R.color.profile));
-                                builder.setTextColor(getColor(R.color.profile_text));
-                                builder.setGravity(ToolTip.GRAVITY_CENTER);
-                                builder.setTextSize(15);
-                                toolTip.show(builder.build());
-                            }},1300);
-                            new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(click);}},4000);
-                        }
+                            ToolTip.Builder builder = new ToolTip.Builder(login.this, click,camera_pane, getString(R.string.open_galary), ToolTip.POSITION_ABOVE);
+                            builder.setBackgroundColor(getColor(R.color.profile));
+                            builder.setTextColor(getColor(R.color.profile_text));
+                            builder.setGravity(ToolTip.GRAVITY_CENTER);
+                            builder.setTextSize(15);
+                            toolTip.show(builder.build());
+                        }},1300);
+                        new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(click);}},4000);
                     }
                 }
-            });
-            profile.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-                    vibrate(35);profile_lp=true;
-                    if(gender_text.getText().equals(getString(R.string.he))) {profile.setImageDrawable(getDrawable(R.mipmap.boy));}
-                    else if(gender_text.getText().equals(getString(R.string.she))) {profile.setImageDrawable(getDrawable(R.mipmap.girl));}
-                    isDP_added=false;profile_dp=null;
-                    return false;
+            }
+        });
+        profile.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                vibrate(35);profile_lp=true;
+                if(gender_text.getText().equals(getString(R.string.he))) {profile.setImageDrawable(getDrawable(R.mipmap.boy));}
+                else if(gender_text.getText().equals(getString(R.string.she))) {profile.setImageDrawable(getDrawable(R.mipmap.girl));}
+                isDP_added=false;profile_dp=null;
+                return false;
+            }
+        });
+
+        gender_swap=(ImageView) findViewById(R.id.gender_swap);
+        gender_swap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                vibrate(20);
+                if(gender_text.getText().equals(getString(R.string.he)))
+                {
+                    gender_text.setText(getString(R.string.she));
+                    if(!isDP_added)profile.setImageDrawable(getDrawable(R.mipmap.girl));
                 }
-            });
-
-            gender_swap=(ImageView) findViewById(R.id.gender_swap);
-            gender_swap.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    vibrate(20);
-                    if(gender_text.getText().equals(getString(R.string.he)))
-                    {
-                        gender_text.setText(getString(R.string.she));
-                        if(!isDP_added)profile.setImageDrawable(getDrawable(R.mipmap.girl));
-                    }
-                    else if(gender_text.getText().equals(getString(R.string.she)))
-                    {
-                        gender_text.setText(getString(R.string.he));
-                        if(!isDP_added)profile.setImageDrawable(getDrawable(R.mipmap.boy));
-                    }
+                else if(gender_text.getText().equals(getString(R.string.she)))
+                {
+                    gender_text.setText(getString(R.string.he));
+                    if(!isDP_added)profile.setImageDrawable(getDrawable(R.mipmap.boy));
                 }
-            });
+            }
+        });
 
-            signin=(TextView)findViewById(R.id.signin);setButtonEnabled(false);
-            signin.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/vdub.ttf"));
-            signin.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    switch (event.getAction()) {
-                        case MotionEvent.ACTION_DOWN:
-                            signin.setBackgroundResource(R.drawable.signin_pressed);signin.setTextColor(Color.parseColor("#ffffff"));
-                            break;
-                        case MotionEvent.ACTION_UP:
-                            signin.setBackgroundResource(R.drawable.signin);signin.setTextColor(Color.parseColor("#02723B"));
-                            performSignIn();vibrate(20);
-                            break;
-                    }
-                    return true;
+        signin=(TextView)findViewById(R.id.signin);setButtonEnabled(false);
+        signin.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/vdub.ttf"));
+        signin.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        signin.setBackgroundResource(R.drawable.signin_pressed);signin.setTextColor(Color.parseColor("#ffffff"));
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        signin.setBackgroundResource(R.drawable.signin);signin.setTextColor(Color.parseColor("#02723B"));
+                        performSignIn();vibrate(20);
+                        break;
                 }
-            });
+                return true;
+            }
+        });
 
-            backG=(TrianglifyView)findViewById(R.id.backG);
-            backG.setPalette(new Palette(getResources().getIntArray(R.array.theme)));
+        backG=(TrianglifyView)findViewById(R.id.backG);
+        backG.setPalette(new Palette(getResources().getIntArray(R.array.theme)));
 
-            ico_splash=(ImageView)findViewById(R.id.ico_splash);
-            login_div=(RelativeLayout)findViewById(R.id.login_div);
-            logo_div=(RelativeLayout)findViewById(R.id.logo_div);
-            sign_dialog=(RelativeLayout)findViewById(R.id.sign_dialog);
-            splash_cover=(RelativeLayout)findViewById(R.id.splash_cover);
-            gender=(RelativeLayout)findViewById(R.id.gender);
+        ico_splash=(ImageView)findViewById(R.id.ico_splash);
+        login_div=(RelativeLayout)findViewById(R.id.login_div);
+        logo_div=(RelativeLayout)findViewById(R.id.logo_div);
+        sign_dialog=(RelativeLayout)findViewById(R.id.sign_dialog);
+        splash_cover=(RelativeLayout)findViewById(R.id.splash_cover);
+        gender=(RelativeLayout)findViewById(R.id.gender);
 
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    anim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_trans);
-                    splash_cover.setVisibility(View.GONE);
-                    ico_splash.setImageResource(R.mipmap.logo);
-                    Animation anima = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_reveal);
-                    logo_div.setVisibility(View.VISIBLE);logo_div.startAnimation(anima);ico_splash.startAnimation(anim);
-                    new Handler().postDelayed(new Runnable() {@Override public void run() {scaleY(48,login_div);}},800);
-                }
-            },1500);
-        }
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                anim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_trans);
+                splash_cover.setVisibility(View.GONE);
+                ico_splash.setImageResource(R.mipmap.logo);
+                Animation anima = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_reveal);
+                logo_div.setVisibility(View.VISIBLE);logo_div.startAnimation(anima);ico_splash.startAnimation(anim);
+                new Handler().postDelayed(new Runnable() {@Override public void run() {scaleY(48,login_div);}},800);
+            }
+        },1500);
     }
     public void performSignIn()
     {
@@ -637,7 +654,7 @@ public class login extends AppCompatActivity
                                             builder.setTextColor(getColor(R.color.profile_text));
                                             builder.setGravity(ToolTip.GRAVITY_CENTER);
                                             builder.setTextSize(15);
-                                            toolTip.show(builder.build());
+                                            toolTip.show(builder.build());scaleY(0,forget_pass);
                                             new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(forget_pass);}},4000);
                                             new Handler().postDelayed(new Runnable() {@Override public void run() {
                                                 setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
@@ -794,7 +811,7 @@ public class login extends AppCompatActivity
         dp_Loader.setVisibility(View.GONE);
         SharedPreferences.Editor prefsEditor = pref.edit();
         prefsEditor.putString(auth.getCurrentUser().getUid()+"user_details", new Gson().toJson(user));
-        prefsEditor.commit();email_reset.performClick();
+        prefsEditor.commit();
         new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},200);
     }
     public void closeCam()

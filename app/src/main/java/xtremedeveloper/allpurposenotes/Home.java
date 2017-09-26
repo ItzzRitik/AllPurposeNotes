@@ -62,6 +62,7 @@ public class Home extends AppCompatActivity
             R.drawable.dob};
     private String[] note_title = {"Notes 1","Notes 2","Notes 3","Notes 4","Notes 5","Notes 6","Notes 7","Notes 8"};
     private int[] notes_type={1,2,1,2,1,2,1,2};
+    private int[] menu_list={1,1,1,1,1,1,1,1,1,1};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,7 +106,7 @@ public class Home extends AppCompatActivity
         menuPager.setClipChildren(false);
         menuPager.setOffscreenPageLimit(3);
         menuPager.setPageTransformer(false, new CarouselMenuTransformer(this));
-        menuPager.setAdapter(new MyPagerAdapter(Home.this,note_title,notes_type));
+        menuPager.setAdapter(new MenuAdapter(Home.this,menu_list));
 
         userId=auth.getCurrentUser().getUid();
         receiveProfile();

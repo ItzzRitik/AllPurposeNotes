@@ -65,11 +65,12 @@
             android:clipToPadding="false"
             android:overScrollMode="never"
             android:paddingLeft="80dp"
-            android:paddingRight="80dp"
+            android:paddingRight="180dp"
             android:paddingTop="20dp"
             android:paddingBottom="20dp"
             android:transitionGroup="true"
             android:layout_marginTop="40dp"
-            android:layout_marginBottom="0dp"/>
+            android:layout_marginBottom="0dp"
+            android:layout_marginStart="-80dp"/>
     </RelativeLayout>
 </RelativeLayout>

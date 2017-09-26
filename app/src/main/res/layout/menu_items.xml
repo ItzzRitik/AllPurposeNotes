@@ -4,15 +4,12 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <android.support.v7.widget.CardView
-        android:id="@+id/note_card"
+        android:id="@+id/menu_card"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:cardCornerRadius="5dp"
         app:cardElevation="0dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginTop="15dp"
-        android:layout_marginBottom="15dp"
+        android:layout_margin="20dp"
         app:cardBackgroundColor="@color/colorPrimary">
         <RelativeLayout
             android:layout_width="match_parent"
@@ -20,7 +17,7 @@
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:src="@drawable/dob"/>
+                android:id="@+id/menu_icon"/>
         </RelativeLayout>
     </android.support.v7.widget.CardView>
 </RelativeLayout>

@@ -44,7 +44,7 @@ public class Home extends AppCompatActivity
     FloatingActionButton close_menu;
     AppBarLayout appbar;
     TextView display_name;
-    ViewPager notePager;
+    ViewPager notePager,menuPager;
     ImageView profile_menu,menu_cover;
     FirebaseAuth auth;
     StorageReference fbs;
@@ -55,6 +55,11 @@ public class Home extends AppCompatActivity
     Bitmap profile_pic;
     SharedPreferences pref;
     ProgressBar loading_profile;
+    private int[] menu_icons={R.drawable.dob,
+            R.drawable.dob,
+            R.drawable.dob,
+            R.drawable.dob,
+            R.drawable.dob};
     private String[] note_title = {"Notes 1","Notes 2","Notes 3","Notes 4","Notes 5","Notes 6","Notes 7","Notes 8"};
     private int[] notes_type={1,2,1,2,1,2,1,2};
     @Override
@@ -93,8 +98,15 @@ public class Home extends AppCompatActivity
         notePager= (ViewPager) findViewById(R.id.notesPager);
         notePager.setClipChildren(false);
         notePager.setOffscreenPageLimit(3);
-        notePager.setPageTransformer(false, new CarouselMenuTransformer(this));
+        notePager.setPageTransformer(false, new CarouselEffectTransformer(this));
         notePager.setAdapter(new MyPagerAdapter(Home.this,note_title,notes_type));
+
+        menuPager= (ViewPager) findViewById(R.id.menuPager);
+        menuPager.setClipChildren(false);
+        menuPager.setOffscreenPageLimit(3);
+        menuPager.setPageTransformer(false, new CarouselMenuTransformer(this));
+        menuPager.setAdapter(new MyPagerAdapter(Home.this,note_title,notes_type));
+
         userId=auth.getCurrentUser().getUid();
         receiveProfile();
     }

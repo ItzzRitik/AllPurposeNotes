@@ -21,6 +21,7 @@ public class CarouselEffectTransformer implements ViewPager.PageTransformer
         {
             view.setScaleX(scaleFactor);
             view.setScaleY(scaleFactor);
+            view.setAlpha(scaleFactor);
             view.setTranslationX(-maxTranslateOffsetX * offsetRate);
         }
         ViewCompat.setElevation(view, scaleFactor);

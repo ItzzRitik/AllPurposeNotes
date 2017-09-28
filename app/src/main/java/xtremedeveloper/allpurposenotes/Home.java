@@ -1,4 +1,5 @@
 package xtremedeveloper.allpurposenotes;
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -6,6 +7,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.os.Environment;
@@ -17,7 +19,9 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.TypedValue;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -41,7 +45,7 @@ import java.io.File;
 
 public class Home extends AppCompatActivity
 {
-    FloatingActionButton close_menu;
+    FloatingActionButton close_menu,add_notes;
     AppBarLayout appbar;
     TextView display_name;
     ViewPager notePager,menuPager;
@@ -55,6 +59,8 @@ public class Home extends AppCompatActivity
     Bitmap profile_pic;
     SharedPreferences pref;
     ProgressBar loading_profile;
+    float addNotes_x1=0,addNotes_y1=0;
+    boolean isAdd=false;
     private int[] menu_icons={R.drawable.dob,
             R.drawable.dob,
             R.drawable.dob,
@@ -95,6 +101,35 @@ public class Home extends AppCompatActivity
         });
         menu_cover=(ImageView)findViewById(R.id.menu_cover);
 
+        add_notes=(FloatingActionButton)findViewById(R.id.add_notes);
+        add_notes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                float x3=(notePager.getWidth()/2)-(add_notes.getWidth()/2);
+                float y3=notePager.getHeight()-add_notes.getHeight()*22/20;
+                final Path path = new Path();
+                if(!isAdd)
+                {
+                    addNotes_x1 = add_notes.getX();
+                    addNotes_y1 = add_notes.getY();
+                    path.moveTo(addNotes_x1, addNotes_y1);
+                    final float x2 = (addNotes_x1 + x3) / 2;
+                    final float y2 = addNotes_y1-add_notes.getHeight();
+                    path.quadTo(x2, y2, x3, y3);
+                    isAdd=true;
+                }
+                else
+                {
+                    path.moveTo(add_notes.getX(), add_notes.getY());
+                    final float x2 = (add_notes.getX() + addNotes_x1) / 2;
+                    final float y2 = add_notes.getY()+add_notes.getHeight();
+                    path.quadTo(x2, y2, addNotes_x1,addNotes_y1);
+                    isAdd=false;
+                }
+                ObjectAnimator anim = ObjectAnimator.ofFloat(add_notes, View.X, View.Y, path);
+                anim.setDuration(200);anim.start();
+            }
+        });
 
         notePager= (ViewPager) findViewById(R.id.notesPager);
         notePager.setClipChildren(false);
@@ -180,4 +215,8 @@ public class Home extends AppCompatActivity
         byte[] decodedByte = Base64.decode(input, 0);
         return BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length);
     }
+    public float dptopx(float num)
+    {return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, num, getResources().getDisplayMetrics());}
+    public float pxtodp(float num)
+    {return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, num, getResources().getDisplayMetrics());}
 }

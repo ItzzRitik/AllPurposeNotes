@@ -1,9 +1,13 @@
 package xtremedeveloper.allpurposenotes;
+import android.animation.Animator;
+import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -15,15 +19,25 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.AnticipateInterpolator;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.OvershootInterpolator;
+import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,6 +61,7 @@ public class Home extends AppCompatActivity
 {
     FloatingActionButton close_menu,add_notes;
     AppBarLayout appbar;
+    RelativeLayout add_panel;
     TextView display_name;
     ViewPager notePager,menuPager;
     ImageView profile_menu,menu_cover;
@@ -59,6 +74,7 @@ public class Home extends AppCompatActivity
     Bitmap profile_pic;
     SharedPreferences pref;
     ProgressBar loading_profile;
+    ObjectAnimator anim;
     float addNotes_x1=0,addNotes_y1=0;
     boolean isAdd=false;
     private int[] menu_icons={R.drawable.dob,
@@ -101,12 +117,13 @@ public class Home extends AppCompatActivity
         });
         menu_cover=(ImageView)findViewById(R.id.menu_cover);
 
+        add_panel=(RelativeLayout) findViewById(R.id.add_panel);
         add_notes=(FloatingActionButton)findViewById(R.id.add_notes);
         add_notes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                float x3=(notePager.getWidth()/2)-(add_notes.getWidth()/2);
-                float y3=notePager.getHeight()-add_notes.getHeight()*22/20;
+                final float x3=(notePager.getWidth()/2)-(add_notes.getWidth()/2);
+                final float y3=notePager.getHeight()-add_notes.getHeight()*22/20;
                 final Path path = new Path();
                 if(!isAdd)
                 {
@@ -116,6 +133,8 @@ public class Home extends AppCompatActivity
                     final float x2 = (addNotes_x1 + x3) / 2;
                     final float y2 = addNotes_y1-add_notes.getHeight();
                     path.quadTo(x2, y2, x3, y3);
+                    ViewCompat.animate(add_notes).rotation(135*7).withLayer().setDuration(1000)
+                            .setInterpolator(new AccelerateDecelerateInterpolator()).start();
                     isAdd=true;
                 }
                 else
@@ -124,10 +143,31 @@ public class Home extends AppCompatActivity
                     final float x2 = (add_notes.getX() + addNotes_x1) / 2;
                     final float y2 = add_notes.getY()+add_notes.getHeight();
                     path.quadTo(x2, y2, addNotes_x1,addNotes_y1);
+                    ViewCompat.animate(add_notes).rotation(0).withLayer().setDuration(800).setInterpolator(new DecelerateInterpolator()).start();
+                    Animator anima = ViewAnimationUtils.createCircularReveal(add_panel,notePager.getRight()/2,(int)dptopx(33),notePager.getHeight()*141/100,0);
+                    anima.setInterpolator(new DecelerateInterpolator());anima.setDuration(500);
+                    anima.start();
                     isAdd=false;
                 }
-                ObjectAnimator anim = ObjectAnimator.ofFloat(add_notes, View.X, View.Y, path);
-                anim.setDuration(200);anim.start();
+                anim = ObjectAnimator.ofFloat(add_notes, View.X, View.Y, path);
+                anim.setDuration(200);
+                anim.addListener(new Animator.AnimatorListener() {
+                    @Override public void onAnimationStart(Animator animator) {add_panel.setVisibility(View.GONE);}
+                    @Override public void onAnimationEnd(Animator animator) {
+                        if(isAdd)
+                        {
+                            Animator anima = ViewAnimationUtils.createCircularReveal(add_panel,notePager.getRight()/2,(int)dptopx(33),0,notePager.getHeight()*141/100);
+                            anima.setInterpolator(new AccelerateInterpolator());anima.setDuration(500);
+                            add_panel.setVisibility(View.VISIBLE);anima.start();
+                            add_notes.setElevation(0);
+                        }
+                        else {add_notes.setElevation(6);}
+                    }
+                    @Override public void onAnimationCancel(Animator animator) {}
+                    @Override public void onAnimationRepeat(Animator animator) {}
+                });
+                if(isAdd){anim.start();}
+                else{new Handler().postDelayed(new Runnable() {@Override public void run() {anim.start();}},500);}
             }
         });
 

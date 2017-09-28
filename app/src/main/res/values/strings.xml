@@ -32,4 +32,5 @@
     <string name="failed_send">Failed to send verification email.</string>
     <string name="didnt_recieve">Didn\'t Receive a mail?, Resend !</string>
     <string name="error_resend">Error Sending Verification Mail</string>
+    <string name="add_notes">Add Notes Option</string>
 </resources>

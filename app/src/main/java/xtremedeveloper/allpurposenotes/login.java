@@ -348,7 +348,8 @@ public class login extends AppCompatActivity
             public void onClick(View v) {
                 scaleY(login_div,48,300,new AccelerateDecelerateInterpolator());
                 scaleY(forget_pass,0,300,new AccelerateDecelerateInterpolator());email_reset.setVisibility(View.GONE);email.setEnabled(true);
-                pass.setText("");con_pass.setText("");signin.setText(getString(R.string.next));setButtonEnabled(true);logs=0;vibrate(20);
+                pass.setText("");con_pass.setText("");buttonText=getString(R.string.next);
+                signin.setText(getString(R.string.next));setButtonEnabled(true);logs=0;vibrate(20);
                 email.setVisibility(View.VISIBLE);pass.setVisibility(View.GONE);con_pass.setVisibility(View.GONE);
                 sign_dialog.setVisibility(View.GONE);
 
@@ -619,7 +620,7 @@ public class login extends AppCompatActivity
                                     {
                                         pass.setVisibility(View.VISIBLE);con_pass.setVisibility(View.GONE);scaleY(login_div,98,300,new AccelerateDecelerateInterpolator());
                                         email_reset.setVisibility(View.VISIBLE);buttonText=getString(R.string.signin);pass.requestFocus();
-                                        pass.setEnabled(true);nextLoading(false);setButtonEnabled(false);scaleY(login_div,22,300,new AccelerateDecelerateInterpolator());logs=1;
+                                        pass.setEnabled(true);nextLoading(false);setButtonEnabled(false);scaleY(forget_pass,22,300,new OvershootInterpolator());logs=1;
                                     }
                                     catch (FirebaseAuthInvalidUserException e)
                                     {
@@ -629,7 +630,7 @@ public class login extends AppCompatActivity
                                     }
                                     catch (Exception e) {
                                         Toast.makeText(login.this,getString(R.string.error), Toast.LENGTH_SHORT).show();
-                                        email_reset.performClick();
+                                        nextLoading(false);email_reset.performClick();
                                     }
                                 }
                             }
@@ -646,7 +647,7 @@ public class login extends AppCompatActivity
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (!task.isSuccessful())
                             {
-                                sign_dialog.setVisibility(View.GONE);pass.setText("");pass.setEnabled(true);
+                                sign_dialog.setVisibility(View.GONE);pass.setText("");pass.setEnabled(true);nextLoading(false);
                                 Toast.makeText(login.this, "Authentication Failed!", Toast.LENGTH_SHORT).show();
                             }
                             else
@@ -659,7 +660,8 @@ public class login extends AppCompatActivity
                                         try
                                         {
                                             user.getgender();email_reset.performClick();
-                                            new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},200);
+                                            new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},2000);
+                                            signin.setText("✔");
                                         }
                                         catch (NullPointerException e)
                                         {
@@ -720,6 +722,7 @@ public class login extends AppCompatActivity
                         .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
+                                nextLoading(false);
                                 if (task.isSuccessful()) {
                                     if (auth.getCurrentUser().isEmailVerified())
                                     {
@@ -879,7 +882,7 @@ public class login extends AppCompatActivity
         dob.setVisibility(View.VISIBLE);divider4.setVisibility(View.VISIBLE);
         divider5.setVisibility(View.VISIBLE);dob_chooser.setVisibility(View.VISIBLE);scaleY(login_div,345,300,new AccelerateDecelerateInterpolator());
         scaleY(logo_div,0,300,null);scaleX(logo_div,0,300,null);scaleY(ico_splash,0,300,null);scaleX(ico_splash,0,300,null);signIn_moveLeft(true);
-        signin.setText(getString(R.string.check));
+        buttonText=getString(R.string.check);signin.setText(getString(R.string.check));
         new Handler().postDelayed(new Runnable() {@Override public void run()
         {
             ToolTip.Builder builder = new ToolTip.Builder(login.this, signin,login_div, getString(R.string.verify2), ToolTip.POSITION_ABOVE);
@@ -954,11 +957,13 @@ public class login extends AppCompatActivity
         {
             scaleX(signin,30,150,new AnticipateInterpolator());buttonText=signin.getText().toString();
             signin.setBackgroundResource(R.drawable.signin_disabled);signin.setTextColor(Color.parseColor("#616161"));
-            new Handler().postDelayed(new Runnable() {@Override public void run() {nextLoad.setVisibility(View.VISIBLE);signin.setText("╳");}},150);
+            new Handler().postDelayed(new Runnable() {@Override public void run() {
+                nextLoad.setVisibility(View.VISIBLE);signin.setText("╳");
+            }},150);
         }
         else
         {
-            nextLoad.setVisibility(View.GONE);scaleX(signin,85,300,new OvershootInterpolator());
+            nextLoad.setVisibility(View.GONE);signin.setText("");scaleX(signin,85,300,new OvershootInterpolator());
             new Handler().postDelayed(new Runnable()
             {@Override public void run() {signin.setText(buttonText);}},300);
         }
@@ -993,11 +998,9 @@ public class login extends AppCompatActivity
     {
         if(where)
         {
-            signin.animate().translationX(-(signin.getX()-((login_div.getWidth()/2)-(signin.getWidth()/2))));
-            nextLoad.animate().translationX(-(signin.getX()-((login_div.getWidth()/2)-(signin.getWidth()/2))));
-            /*RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) signin.getLayoutParams();
-            lp.addRule(RelativeLayout.CENTER_HORIZONTAL);setMargins(signin,0,0,0,0);setMargins(nextLoad,0,0,0,0);
-            signin.setLayoutParams(lp);nextLoad.setLayoutParams(lp);*/
+            RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) signin.getLayoutParams();
+            lp.removeRule(RelativeLayout.ALIGN_PARENT_END);lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
+            signin.setLayoutParams(lp);
         }
         /*else
         {

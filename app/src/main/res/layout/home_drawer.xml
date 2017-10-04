@@ -72,12 +72,5 @@
             android:layout_marginTop="40dp"
             android:layout_marginBottom="0dp"
             android:layout_marginStart="-80dp"/>
-        <com.andrognito.patternlockview.PatternLockView
-            android:id="@+id/patternLock"
-            android:layout_width="280dp"
-            android:layout_height="280dp"
-            android:layout_centerHorizontal="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginBottom="100dp"/>
     </RelativeLayout>
 </RelativeLayout>

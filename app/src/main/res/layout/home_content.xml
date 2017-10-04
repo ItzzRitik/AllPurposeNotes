@@ -73,4 +73,14 @@
                 android:contentDescription="@string/add_notes" />
         </LinearLayout>
     </RelativeLayout>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/add_notes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        app:elevation="6dp"
+        app:borderWidth="0dp"
+        app:srcCompat="@drawable/add" />
 </RelativeLayout>

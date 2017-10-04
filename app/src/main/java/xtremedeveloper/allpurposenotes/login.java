@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.icu.text.SimpleDateFormat;
@@ -115,6 +116,7 @@ public class login extends AppCompatActivity
     Bitmap profile_dp=null;
     ProgressBar dp_Loader;
     SharedPreferences pref;
+    Point screenSize;
     @Override
     protected void onResume() {
         super.onResume();
@@ -165,6 +167,8 @@ public class login extends AppCompatActivity
         super.onCreate(savedInstanceState);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
+        screenSize = new Point();
+        getWindowManager().getDefaultDisplay().getSize(screenSize);
         auth = FirebaseAuth.getInstance();
         pref = getSharedPreferences("app_settings",Context.MODE_PRIVATE);
         if(auth.getCurrentUser()!=null)
@@ -761,7 +765,8 @@ public class login extends AppCompatActivity
             StorageReference storageReference= FirebaseStorage.getInstance().getReference();
             StorageReference riversRef = storageReference.child("UserDP/"+auth.getCurrentUser().getUid()+".jpg");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap=Bitmap.createScaledBitmap(bitmap, 1080, 1080, false);
+            //noinspection SuspiciousNameCombination
+            bitmap=Bitmap.createScaledBitmap(bitmap, screenSize.x, screenSize.x, false);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
             riversRef.putBytes(baos.toByteArray())
                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {

@@ -12,6 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Path;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.os.Environment;
@@ -25,6 +26,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.TypedValue;
+import android.view.Display;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -75,6 +77,7 @@ public class Home extends AppCompatActivity
     SharedPreferences pref;
     ProgressBar loading_profile;
     ObjectAnimator anim;
+    Point screenSize;
     float addNotes_x1=0,addNotes_y1=0;
     boolean isAdd=false;
     private int[] menu_icons={R.drawable.dob,
@@ -91,6 +94,8 @@ public class Home extends AppCompatActivity
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         setContentView(R.layout.activity_home);
+        screenSize = new Point();
+        getWindowManager().getDefaultDisplay().getSize(screenSize);
 
         auth=FirebaseAuth.getInstance();
         pref = getSharedPreferences("app_settings",Context.MODE_PRIVATE);
@@ -261,14 +266,15 @@ public class Home extends AppCompatActivity
             });
         }
     }
-    public static String encodeTobase64(Bitmap image) {
+    public String encodeTobase64(Bitmap image) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        image=Bitmap.createScaledBitmap(image, 1080, 1080, false);
+        //noinspection SuspiciousNameCombination
+        image=Bitmap.createScaledBitmap(image, screenSize.x, screenSize.x, false);
         image.compress(Bitmap.CompressFormat.JPEG, 50, baos);
         byte[] b = baos.toByteArray();
         return Base64.encodeToString(b, Base64.DEFAULT);
     }
-    public static Bitmap decodeBase64(String input) {
+    public Bitmap decodeBase64(String input) {
         byte[] decodedByte = Base64.decode(input, 100);
         return BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length);
     }

@@ -32,12 +32,14 @@ import android.util.TypedValue;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewAnimationUtils;
+import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.AnticipateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
@@ -46,6 +48,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.andrognito.patternlockview.PatternLockView;
+import com.andrognito.patternlockview.listener.PatternLockViewListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -61,6 +65,7 @@ import com.google.gson.Gson;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.List;
 
 public class Home extends AppCompatActivity
 {
@@ -81,6 +86,7 @@ public class Home extends AppCompatActivity
     ProgressBar loading_profile;
     ObjectAnimator anim;
     Point screenSize;
+    PatternLockView patternLock;
     float addNotes_x1=0,addNotes_y1=0;
     boolean isAdd=false;
     private int[] menu_icons={R.drawable.dob,
@@ -141,7 +147,7 @@ public class Home extends AppCompatActivity
                     final float x2 = (addNotes_x1 + x3) / 2;
                     final float y2 = addNotes_y1-add_notes.getHeight();
                     path.quadTo(x2, y2, x3, y3);
-                    ViewCompat.animate(add_notes).rotation(135*7).withLayer().setDuration(1000)
+                    ViewCompat.animate(add_notes).rotation(135*5).withLayer().setDuration(600)
                             .setInterpolator(new AccelerateDecelerateInterpolator()).start();
                     isAdd=true;
                 }
@@ -151,23 +157,18 @@ public class Home extends AppCompatActivity
                     final float x2 = (add_notes.getX() + addNotes_x1) / 2;
                     final float y2 = add_notes.getY()+add_notes.getHeight();
                     path.quadTo(x2, y2, addNotes_x1,addNotes_y1);
-                    ViewCompat.animate(add_notes).rotation(0).withLayer().setDuration(800).setInterpolator(new DecelerateInterpolator()).start();
-                    Animator anima = ViewAnimationUtils.createCircularReveal(add_panel,notePager.getRight()/2,(int)dptopx(33),notePager.getHeight()*141/100,0);
-                    anima.setInterpolator(new DecelerateInterpolator());anima.setDuration(500);
-                    anima.start();
+                    ViewCompat.animate(add_notes).rotation(0).withLayer().setDuration(700).setInterpolator(new AccelerateDecelerateInterpolator()).start();
+                    scaleX(add_panel,0,250,new AnticipateInterpolator());
                     isAdd=false;
                 }
                 anim = ObjectAnimator.ofFloat(add_notes, View.X, View.Y, path);
                 anim.setDuration(200);
                 anim.addListener(new Animator.AnimatorListener() {
-                    @Override public void onAnimationStart(Animator animator) {add_panel.setVisibility(View.GONE);}
+                    @Override public void onAnimationStart(Animator animator) {}
                     @Override public void onAnimationEnd(Animator animator) {
                         if(isAdd)
                         {
-                            Animator anima = ViewAnimationUtils.createCircularReveal(add_panel,notePager.getRight()/2,(int)dptopx(33),0,notePager.getHeight()*141/100);
-                            anima.setInterpolator(new AccelerateInterpolator());anima.setDuration(500);
-                            add_panel.setVisibility(View.VISIBLE);anima.start();
-                            add_notes.setElevation(0);
+                            scaleX(add_panel,300,250,new OvershootInterpolator());add_notes.setElevation(0);
                         }
                         else {add_notes.setElevation(6);}
                     }
@@ -192,6 +193,29 @@ public class Home extends AppCompatActivity
                     }
                 });
                 colAnim.start();
+            }
+        });
+
+        patternLock= (PatternLockView) findViewById(R.id.patternLock);
+        patternLock.addPatternLockListener(new PatternLockViewListener() {
+            @Override
+            public void onStarted() {
+
+            }
+
+            @Override
+            public void onProgress(List<PatternLockView.Dot> progressPattern) {
+
+            }
+
+            @Override
+            public void onComplete(List<PatternLockView.Dot> pattern) {
+
+            }
+
+            @Override
+            public void onCleared() {
+
             }
         });
 
@@ -268,6 +292,32 @@ public class Home extends AppCompatActivity
                 }
             });
         }
+    }
+    public void scaleX(final View view,int x,int t, Interpolator interpolator)
+    {
+        ValueAnimator anim = ValueAnimator.ofInt(view.getMeasuredWidth(),(int)dptopx(x));anim.setInterpolator(interpolator);
+        anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+                layoutParams.width = (Integer) valueAnimator.getAnimatedValue();
+                view.setLayoutParams(layoutParams);
+            }
+        });
+        anim.setDuration(t);anim.start();
+    }
+    public void scaleY(final View view,int y,int t, Interpolator interpolator)
+    {
+        ValueAnimator anim = ValueAnimator.ofInt(view.getMeasuredHeight(),(int)dptopx(y));anim.setInterpolator(interpolator);
+        anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+                layoutParams.height = (Integer) valueAnimator.getAnimatedValue();
+                view.setLayoutParams(layoutParams);view.invalidate();
+            }
+        });
+        anim.setDuration(t);anim.start();
     }
     public String encodeTobase64(Bitmap image) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

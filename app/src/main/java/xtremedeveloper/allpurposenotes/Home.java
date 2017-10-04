@@ -123,7 +123,7 @@ public class Home extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 final float x3=(notePager.getWidth()/2)-(add_notes.getWidth()/2);
-                final float y3=notePager.getHeight()-add_notes.getHeight()*22/20;
+                final float y3=notePager.getHeight()-add_notes.getHeight()*54/50;
                 final Path path = new Path();
                 if(!isAdd)
                 {
@@ -166,8 +166,24 @@ public class Home extends AppCompatActivity
                     @Override public void onAnimationCancel(Animator animator) {}
                     @Override public void onAnimationRepeat(Animator animator) {}
                 });
-                if(isAdd){anim.start();}
+                ObjectAnimator colAnim = ObjectAnimator.ofInt(add_notes, "backgroundTint",getColor(R.color.colorPrimaryDark),getColor(R.color.colorPrimary));
+                if(isAdd)
+                {
+                    colAnim = ObjectAnimator.ofInt(add_notes, "backgroundTint",getColor(R.color.colorPrimary),getColor(R.color.colorPrimaryDark));
+                    anim.start();
+                }
                 else{new Handler().postDelayed(new Runnable() {@Override public void run() {anim.start();}},500);}
+                colAnim.setDuration(200);
+                colAnim.setEvaluator(new ArgbEvaluator());
+                colAnim.setInterpolator(new DecelerateInterpolator(2));
+                colAnim.addUpdateListener(new ObjectAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        int animatedValue = (int) animation.getAnimatedValue();
+                        add_notes.setBackgroundTintList(ColorStateList.valueOf(animatedValue));
+                    }
+                });
+                colAnim.start();
             }
         });
 

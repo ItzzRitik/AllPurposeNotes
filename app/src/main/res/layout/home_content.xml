@@ -43,8 +43,30 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:padding="22dp"
+                android:padding="21dp"
+                android:src="@drawable/notes_check"
+                android:clickable="true"
+                style="@style/SelectableItemBackgroundBorderless"
+                android:contentDescription="@string/add_notes" />
+            <View
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:padding="21dp"
                 android:src="@drawable/notes_audio"
+                android:clickable="true"
+                style="@style/SelectableItemBackgroundBorderless"
+                android:contentDescription="@string/add_notes" />
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:padding="21dp"
+                android:src="@drawable/camera"
                 android:clickable="true"
                 style="@style/SelectableItemBackgroundBorderless"
                 android:contentDescription="@string/add_notes" />

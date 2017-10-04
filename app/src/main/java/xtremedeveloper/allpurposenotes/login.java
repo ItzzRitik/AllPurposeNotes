@@ -660,18 +660,18 @@ public class login extends AppCompatActivity
                                         try
                                         {
                                             user.getgender();email_reset.performClick();
-                                            new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},2000);
+                                            new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},1500);
                                             signin.setText("✔");
                                         }
                                         catch (NullPointerException e)
                                         {
-                                            ToolTip.Builder builder = new ToolTip.Builder(login.this, forget_pass,parentPanel, getString(R.string.complete_signUp), ToolTip.POSITION_ABOVE);
+                                            ToolTip.Builder builder = new ToolTip.Builder(login.this, email,parentPanel, getString(R.string.complete_signUp), ToolTip.POSITION_ABOVE);
                                             builder.setBackgroundColor(getColor(R.color.profile));
                                             builder.setTextColor(getColor(R.color.profile_text));
                                             builder.setGravity(ToolTip.GRAVITY_CENTER);
                                             builder.setTextSize(15);
                                             toolTip.show(builder.build());scaleY(forget_pass,0,300,new AccelerateDecelerateInterpolator());
-                                            new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(forget_pass);}},4000);
+                                            new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(email);}},4000);
                                             new Handler().postDelayed(new Runnable() {@Override public void run() {
                                                 nextLoading(false);setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
                                                 sendVerification();

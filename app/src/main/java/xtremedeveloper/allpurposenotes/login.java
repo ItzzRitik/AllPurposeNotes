@@ -761,7 +761,7 @@ public class login extends AppCompatActivity
             StorageReference storageReference= FirebaseStorage.getInstance().getReference();
             StorageReference riversRef = storageReference.child("UserDP/"+auth.getCurrentUser().getUid()+".jpg");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 0, baos);
             riversRef.putBytes(baos.toByteArray())
                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @SuppressLint("ApplySharedPref")

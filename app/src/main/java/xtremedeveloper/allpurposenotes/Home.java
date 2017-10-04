@@ -263,12 +263,12 @@ public class Home extends AppCompatActivity
     }
     public static String encodeTobase64(Bitmap image) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        image.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        image.compress(Bitmap.CompressFormat.JPEG, 0, baos);
         byte[] b = baos.toByteArray();
         return Base64.encodeToString(b, Base64.DEFAULT);
     }
     public static Bitmap decodeBase64(String input) {
-        byte[] decodedByte = Base64.decode(input, 0);
+        byte[] decodedByte = Base64.decode(input, 100);
         return BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length);
     }
     public float dptopx(float num)

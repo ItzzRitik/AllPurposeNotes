@@ -38,10 +38,14 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.AnticipateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.Interpolator;
+import android.view.animation.OvershootInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -56,6 +60,7 @@ import android.widget.Toast;
 import com.flurgle.camerakit.CameraKit;
 import com.flurgle.camerakit.CameraListener;
 import com.flurgle.camerakit.CameraView;
+import com.google.android.gms.common.api.BooleanResult;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -114,8 +119,9 @@ public class login extends AppCompatActivity
     String profile_url="",profile_path="";
     UCrop.Options options;
     Bitmap profile_dp=null;
-    ProgressBar dp_Loader;
+    ProgressBar dp_Loader,nextLoad;
     SharedPreferences pref;
+    String buttonText="";
     Point screenSize;
     @Override
     protected void onResume() {
@@ -340,7 +346,8 @@ public class login extends AppCompatActivity
         email_reset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                scaleY(48,login_div);scaleY(0,forget_pass);email_reset.setVisibility(View.GONE);email.setEnabled(true);
+                scaleY(login_div,48,300,new AccelerateDecelerateInterpolator());
+                scaleY(forget_pass,0,300,new AccelerateDecelerateInterpolator());email_reset.setVisibility(View.GONE);email.setEnabled(true);
                 pass.setText("");con_pass.setText("");signin.setText(getString(R.string.next));setButtonEnabled(true);logs=0;vibrate(20);
                 email.setVisibility(View.VISIBLE);pass.setVisibility(View.GONE);con_pass.setVisibility(View.GONE);
                 sign_dialog.setVisibility(View.GONE);
@@ -552,6 +559,7 @@ public class login extends AppCompatActivity
             }
         });
 
+        nextLoad=(ProgressBar)findViewById(R.id.nextLoad);
         signin=(TextView)findViewById(R.id.signin);setButtonEnabled(false);
         signin.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/vdub.ttf"));
         signin.setOnTouchListener(new View.OnTouchListener() {
@@ -563,7 +571,8 @@ public class login extends AppCompatActivity
                         break;
                     case MotionEvent.ACTION_UP:
                         signin.setBackgroundResource(R.drawable.signin);signin.setTextColor(Color.parseColor("#02723B"));
-                        performSignIn();vibrate(20);
+                        if(signin.getText().toString().equals("╳")){nextLoading(false);}
+                        else{performSignIn();}vibrate(20);
                         break;
                 }
                 return true;
@@ -588,13 +597,14 @@ public class login extends AppCompatActivity
                 ico_splash.setImageResource(R.mipmap.logo);
                 Animation anima = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_reveal);
                 logo_div.setVisibility(View.VISIBLE);logo_div.startAnimation(anima);ico_splash.startAnimation(anim);
-                new Handler().postDelayed(new Runnable() {@Override public void run() {scaleY(48,login_div);}},800);
+                new Handler().postDelayed(new Runnable()
+                {@Override public void run() {scaleY(login_div,48,300,new AccelerateDecelerateInterpolator());}},800);
             }
         },1500);
     }
     public void performSignIn()
     {
-        email.setEnabled(false);pass.setEnabled(false);con_pass.setEnabled(false);setButtonEnabled(false);
+        email.setEnabled(false);pass.setEnabled(false);con_pass.setEnabled(false);nextLoading(true);
         if(logs==0)
         {
             if(isEmailValid(email.getText().toString()))
@@ -607,15 +617,15 @@ public class login extends AppCompatActivity
                                     try {throw task.getException();}
                                     catch(FirebaseAuthInvalidCredentialsException e)
                                     {
-                                        pass.setVisibility(View.VISIBLE);con_pass.setVisibility(View.GONE);scaleY(98,login_div);
-                                        email_reset.setVisibility(View.VISIBLE);signin.setText(getString(R.string.signin));pass.requestFocus();
-                                        pass.setEnabled(true);setButtonEnabled(false);scaleY(22,forget_pass);logs=1;
+                                        pass.setVisibility(View.VISIBLE);con_pass.setVisibility(View.GONE);scaleY(login_div,98,300,new AccelerateDecelerateInterpolator());
+                                        email_reset.setVisibility(View.VISIBLE);buttonText=getString(R.string.signin);pass.requestFocus();
+                                        pass.setEnabled(true);nextLoading(false);setButtonEnabled(false);scaleY(login_div,22,300,new AccelerateDecelerateInterpolator());logs=1;
                                     }
                                     catch (FirebaseAuthInvalidUserException e)
                                     {
-                                        pass.setVisibility(View.VISIBLE);con_pass.setVisibility(View.VISIBLE);scaleY(148,login_div);
-                                        email_reset.setVisibility(View.VISIBLE);signin.setText(getString(R.string.signup));pass.requestFocus();
-                                        pass.setEnabled(true);setButtonEnabled(false);logs=2;
+                                        pass.setVisibility(View.VISIBLE);con_pass.setVisibility(View.VISIBLE);scaleY(login_div,148,300,new AccelerateDecelerateInterpolator());
+                                        email_reset.setVisibility(View.VISIBLE);buttonText=getString(R.string.signup);pass.requestFocus();
+                                        pass.setEnabled(true);nextLoading(false);setButtonEnabled(false);logs=2;
                                     }
                                     catch (Exception e) {
                                         Toast.makeText(login.this,getString(R.string.error), Toast.LENGTH_SHORT).show();
@@ -658,10 +668,10 @@ public class login extends AppCompatActivity
                                             builder.setTextColor(getColor(R.color.profile_text));
                                             builder.setGravity(ToolTip.GRAVITY_CENTER);
                                             builder.setTextSize(15);
-                                            toolTip.show(builder.build());scaleY(0,forget_pass);
+                                            toolTip.show(builder.build());scaleY(forget_pass,0,300,new AccelerateDecelerateInterpolator());
                                             new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(forget_pass);}},4000);
                                             new Handler().postDelayed(new Runnable() {@Override public void run() {
-                                                setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
+                                                nextLoading(false);setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
                                                 sendVerification();
                                             }},4500);
                                         }
@@ -692,7 +702,7 @@ public class login extends AppCompatActivity
                                         .addOnCompleteListener(login.this, new OnCompleteListener<java.lang.Void>() {
                                             @Override
                                             public void onComplete(@NonNull Task task) {
-                                                setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
+                                                nextLoading(false);setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
                                                 if (task.isSuccessful()) {sendVerification();}
                                                 else {verify_l2.setVisibility(View.VISIBLE);verify_l2.setText(getString(R.string.failed_send));}
                                             }
@@ -713,11 +723,11 @@ public class login extends AppCompatActivity
                                 if (task.isSuccessful()) {
                                     if (auth.getCurrentUser().isEmailVerified())
                                     {
-                                        verify_l1.setVisibility(View.GONE);verify_l2.setVisibility(View.GONE);
-                                        verify_l4.setVisibility(View.GONE);
-                                        signin.setText(getString(R.string.signup));logs=4;
+                                        verify_l1.setVisibility(View.GONE);verify_l2.setVisibility(View.GONE);logs=4;
+                                        verify_l4.setVisibility(View.GONE);buttonText=getString(R.string.signup);nextLoading(false);
                                         if(f_name.getText().length()>0 && isDate(dob.getText().toString())){setButtonEnabled(true);}
-                                        else{setButtonEnabled(false);}scaleY(260,login_div);
+                                        else{setButtonEnabled(false);}
+                                        scaleY(login_div,260,300,new AccelerateDecelerateInterpolator());
                                         new Handler().postDelayed(new Runnable() {@Override public void run() {
                                             ToolTip.Builder builder = new ToolTip.Builder(login.this, signin, login_div,getString(R.string.verify_done), ToolTip.POSITION_ABOVE);
                                             builder.setBackgroundColor(getColor(R.color.profile));
@@ -759,7 +769,7 @@ public class login extends AppCompatActivity
         profile.setLayoutParams(layoutParams);
         profile.setShadowRadius(8);
         profile.setBorderWidth(2);
-        scaleY(0,login_div);
+        scaleY(login_div,0,300,new AccelerateDecelerateInterpolator());
         if(isDP_added)
         {
             StorageReference storageReference= FirebaseStorage.getInstance().getReference();
@@ -867,8 +877,8 @@ public class login extends AppCompatActivity
         profile.setVisibility(View.VISIBLE);gender.setVisibility(View.VISIBLE);
         f_name.setVisibility(View.VISIBLE);l_name.setVisibility(View.VISIBLE);divider3.setVisibility(View.VISIBLE);
         dob.setVisibility(View.VISIBLE);divider4.setVisibility(View.VISIBLE);
-        divider5.setVisibility(View.VISIBLE);dob_chooser.setVisibility(View.VISIBLE);scaleY(345,login_div);
-        scaleY(0,logo_div);scaleX(0,logo_div);scaleY(0,ico_splash);scaleX(0,ico_splash);signIn_moveLeft(true);
+        divider5.setVisibility(View.VISIBLE);dob_chooser.setVisibility(View.VISIBLE);scaleY(login_div,345,300,new AccelerateDecelerateInterpolator());
+        scaleY(logo_div,0,300,null);scaleX(logo_div,0,300,null);scaleY(ico_splash,0,300,null);scaleX(ico_splash,0,300,null);signIn_moveLeft(true);
         signin.setText(getString(R.string.check));
         new Handler().postDelayed(new Runnable() {@Override public void run()
         {
@@ -934,12 +944,28 @@ public class login extends AppCompatActivity
     }
     public void setButtonEnabled(Boolean what)
     {
-        if(what) {signin.setBackgroundResource(R.drawable.signin);signin.setTextColor(Color.parseColor("#02723B"));signin.setEnabled(true);}
-        else {signin.setBackgroundResource(R.drawable.signin_disabled);signin.setTextColor(Color.parseColor("#c7c7c7"));signin.setEnabled(false);}
+        if(what) {signin.setBackgroundResource(R.drawable.signin);signin.setTextColor(Color.parseColor("#02723B"));}
+        else {signin.setBackgroundResource(R.drawable.signin_disabled);signin.setTextColor(Color.parseColor("#c7c7c7"));}
+        signin.setEnabled(what);
     }
-    public void scaleX(int x,final View view)
+    public void nextLoading(Boolean loading)
     {
-        ValueAnimator anim = ValueAnimator.ofInt(view.getMeasuredHeight(),(int)dptopx(x));
+        if(loading)
+        {
+            scaleX(signin,30,150,new AnticipateInterpolator());buttonText=signin.getText().toString();
+            signin.setBackgroundResource(R.drawable.signin_disabled);signin.setTextColor(Color.parseColor("#616161"));
+            new Handler().postDelayed(new Runnable() {@Override public void run() {nextLoad.setVisibility(View.VISIBLE);signin.setText("╳");}},150);
+        }
+        else
+        {
+            nextLoad.setVisibility(View.GONE);scaleX(signin,85,300,new OvershootInterpolator());
+            new Handler().postDelayed(new Runnable()
+            {@Override public void run() {signin.setText(buttonText);}},300);
+        }
+    }
+    public void scaleX(final View view,int x,int t, Interpolator interpolator)
+    {
+        ValueAnimator anim = ValueAnimator.ofInt(view.getMeasuredWidth(),(int)dptopx(x));anim.setInterpolator(interpolator);
         anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
@@ -948,25 +974,43 @@ public class login extends AppCompatActivity
                 view.setLayoutParams(layoutParams);
             }
         });
-        anim.setDuration(300);anim.start();
+        anim.setDuration(t);anim.start();
     }
-    public void scaleY(int y,final View view)
+    public void scaleY(final View view,int y,int t, Interpolator interpolator)
     {
-        ValueAnimator anim = ValueAnimator.ofInt(view.getMeasuredHeight(),(int)dptopx(y));
+        ValueAnimator anim = ValueAnimator.ofInt(view.getMeasuredHeight(),(int)dptopx(y));anim.setInterpolator(interpolator);
         anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
                 layoutParams.height = (Integer) valueAnimator.getAnimatedValue();
-                view.setLayoutParams(layoutParams);
+                view.setLayoutParams(layoutParams);view.invalidate();
             }
         });
-        anim.setDuration(300);anim.start();
+        anim.setDuration(t);anim.start();
     }
     public void signIn_moveLeft(boolean where)
     {
-        if(where)signin.animate().translationX(-(signin.getX()-((login_div.getWidth()/2)-(signin.getWidth()/2))));
-        else signin.animate().translationX((signin.getX()-((login_div.getWidth()/2)-(signin.getWidth()/2))));
+        if(where)
+        {
+            signin.animate().translationX(-(signin.getX()-((login_div.getWidth()/2)-(signin.getWidth()/2))));
+            nextLoad.animate().translationX(-(signin.getX()-((login_div.getWidth()/2)-(signin.getWidth()/2))));
+            /*RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) signin.getLayoutParams();
+            lp.addRule(RelativeLayout.CENTER_HORIZONTAL);setMargins(signin,0,0,0,0);setMargins(nextLoad,0,0,0,0);
+            signin.setLayoutParams(lp);nextLoad.setLayoutParams(lp);*/
+        }
+        /*else
+        {
+            signin.animate().translationX((signin.getX()-((login_div.getWidth()/2)-(signin.getWidth()/2))));
+            nextLoad.animate().translationX((signin.getX()-((login_div.getWidth()/2)-(signin.getWidth()/2))));
+        }*/
+    }
+    public static void setMargins (View v, int l, int t, int r, int b) {
+        if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            p.setMargins(l, t, r, b);
+            v.requestLayout();
+        }
     }
     public void showKeyboard(View view,boolean what)
     {

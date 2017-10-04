@@ -263,6 +263,7 @@ public class Home extends AppCompatActivity
     }
     public static String encodeTobase64(Bitmap image) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        image=Bitmap.createScaledBitmap(image, 1080, 1080, false);
         image.compress(Bitmap.CompressFormat.JPEG, 50, baos);
         byte[] b = baos.toByteArray();
         return Base64.encodeToString(b, Base64.DEFAULT);

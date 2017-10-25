@@ -661,7 +661,7 @@ public class login extends AppCompatActivity
                                         {
                                             user.getgender();email_reset.performClick();
                                             new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},1500);
-                                            signin.setText("✔");
+                                            signin.setText("✓");
                                         }
                                         catch (NullPointerException e)
                                         {

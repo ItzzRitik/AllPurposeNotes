@@ -57,8 +57,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class Home extends AppCompatActivity
 {
@@ -195,7 +193,7 @@ public class Home extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 note_title.add("Text Note "+(note_title.size()+1));note_type.add(1);
-                loadNotes();
+                loadNotes();add_notes.performClick();
             }
         });
 

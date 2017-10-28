@@ -10,7 +10,9 @@ public class EditTextNotes extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_text_notes);
+        getSupportActionBar().setElevation(0);
         Intent intent=getIntent();
         setTitle(intent.getStringExtra("title"));
+
     }
 }

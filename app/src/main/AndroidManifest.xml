@@ -29,7 +29,6 @@
             android:theme="@style/LoginTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -37,10 +36,8 @@
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        <activity
-            android:name=".Home"
-            android:theme="@style/HomeTheme"></activity>
-        <activity android:name=".EditTextNotes"></activity>
+        <activity android:name=".Home" android:theme="@style/HomeTheme"/>
+        <activity android:name=".EditTextNotes" android:theme="@style/EditTheme"/>
     </application>
 
 </manifest>

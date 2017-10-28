@@ -18,6 +18,11 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:windowBackground">@drawable/diagonal_background</item>
     </style>
+    <style name="EditTheme" parent="Theme.AppCompat.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/cardHeader</item>
+        <item name="colorPrimaryDark">@color/cardHeader</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
     <style name="SelectableItemTheme">
         <item name="colorControlHighlight">@color/ripple</item>
     </style>

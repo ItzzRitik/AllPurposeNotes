@@ -57,6 +57,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Home extends AppCompatActivity
 {
@@ -87,9 +89,9 @@ public class Home extends AppCompatActivity
             R.drawable.dob,
             R.drawable.dob};
     private int[] menu_list={1,1,1,1,1};
-
     List<String> note_title = new ArrayList<>();
     List<Integer> note_type = new ArrayList<>();
+    int currentPage;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -192,7 +194,7 @@ public class Home extends AppCompatActivity
         add_text.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                note_title.add("Untitled");note_type.add(1);
+                note_title.add("Text Note "+(note_title.size()+1));note_type.add(1);
                 loadNotes();
             }
         });
@@ -334,7 +336,17 @@ public class Home extends AppCompatActivity
         return BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length);
     }
     public void loadNotes()
-    {notePager.setAdapter(new MyPagerAdapter(Home.this,note_title.toArray(new String[note_title.size()]),note_type.toArray(new Integer[note_type.size()])));}
+    {
+        currentPage=notePager.getCurrentItem();
+        notePager.setAdapter(new MyPagerAdapter(Home.this,note_title.toArray(new String[note_title.size()]),note_type.toArray(new Integer[note_type.size()])));
+        notePager.setCurrentItem(currentPage, false);
+        new Handler().post(new Runnable() {@Override public void run() {
+            while(currentPage<note_title.size())
+            {
+                notePager.setCurrentItem(currentPage++, true);
+            }
+        }});
+    }
     public float dptopx(float num)
     {return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, num, getResources().getDisplayMetrics());}
     public float pxtodp(float num)

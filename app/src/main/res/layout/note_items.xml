@@ -21,6 +21,8 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:clickable="true"
+                android:focusable="true"
                 android:visibility="gone"
                 android:id="@+id/notes_text">
                 <RelativeLayout
@@ -28,10 +30,12 @@
                     android:layout_height="50dp"
                     android:id="@+id/card_header_text"
                     android:layout_alignParentTop="true"
+                    android:clickable="false"
                     android:background="@color/cardHeader">
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:clickable="false"
                         android:layout_centerInParent="true"
                         android:id="@+id/notes_title_text"
                         android:textSize="25sp"
@@ -44,6 +48,7 @@
                     android:id="@+id/notes_textData"
                     android:gravity="top|start"
                     android:layout_margin="10dp"
+                    android:clickable="false"
                     android:textSize="16sp"
                     android:textColor="@color/cardHeader"
                     android:text="@string/verify2"/>
@@ -53,17 +58,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:visibility="gone"
+                android:clickable="true"
+                android:focusable="true"
                 android:id="@+id/notes_pic">
                 <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
+                    android:clickable="false"
                     android:id="@+id/notes_picView"
                     android:src="@mipmap/tony"/>
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:id="@+id/card_header_pic"
+                    android:clickable="false"
                     android:layout_alignParentTop="true"
                     android:background="@color/cardHeader"
                     android:alpha="0.784">
@@ -72,6 +81,7 @@
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
                         android:id="@+id/notes_title_pic"
+                        android:clickable="false"
                         android:textSize="25sp"
                         android:text="Notes 1"/>
                 </RelativeLayout>

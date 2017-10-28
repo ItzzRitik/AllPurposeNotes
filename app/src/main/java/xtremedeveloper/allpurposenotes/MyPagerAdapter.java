@@ -32,21 +32,30 @@ public class MyPagerAdapter extends PagerAdapter{
         View view = LayoutInflater.from(context).inflate(R.layout.note_items, null);
         CardView note_card = view.findViewById(R.id.note_card);
         note_card.setTag(position);
-        notes_text=view.findViewById(R.id.notes_text);
-        notes_pic=view.findViewById(R.id.notes_pic);
         try
         {
             if(Ctype[position]==1)
             {
-                notes_text.setVisibility(View.VISIBLE);
+                notes_text=view.findViewById(R.id.notes_text);notes_text.setVisibility(View.VISIBLE);
+                notes_text.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
 
+                    }
+                });
                 TextView notes_title=view.findViewById(R.id.notes_title_text);
                 notes_title.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/exo2.ttf"));
                 notes_title.setText(listItems[position]);
             }
             else if(Ctype[position]==2)
             {
-                notes_pic.setVisibility(View.VISIBLE);
+                notes_pic=view.findViewById(R.id.notes_pic);notes_pic.setVisibility(View.VISIBLE);
+                notes_pic.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                    }
+                });
                 TextView notes_title_pic=view.findViewById(R.id.notes_title_pic);
                 notes_title_pic.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/exo2.ttf"));
                 notes_title_pic.setText(listItems[position]);

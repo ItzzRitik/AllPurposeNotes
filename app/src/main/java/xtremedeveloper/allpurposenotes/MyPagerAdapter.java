@@ -1,6 +1,7 @@
 package xtremedeveloper.allpurposenotes;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.support.v4.view.PagerAdapter;
 import android.support.v7.widget.CardView;
@@ -27,7 +28,7 @@ public class MyPagerAdapter extends PagerAdapter{
     }
 
     @Override
-    public Object instantiateItem(ViewGroup container, int position)
+    public Object instantiateItem(final ViewGroup container, final int position)
     {
         View view = LayoutInflater.from(context).inflate(R.layout.note_items, null);
         CardView note_card = view.findViewById(R.id.note_card);
@@ -40,7 +41,9 @@ public class MyPagerAdapter extends PagerAdapter{
                 notes_text.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-
+                        Intent edit = new Intent(context,EditTextNotes.class);
+                        edit.putExtra("title",listItems[position]);
+                        context.startActivity(edit);
                     }
                 });
                 TextView notes_title=view.findViewById(R.id.notes_title_text);

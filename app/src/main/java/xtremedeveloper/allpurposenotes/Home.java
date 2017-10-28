@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -16,10 +15,7 @@ import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
-import android.net.Uri;
-import android.os.Environment;
 import android.os.Handler;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -29,19 +25,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.TypedValue;
-import android.view.Display;
 import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.animation.AnticipateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
-import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -65,6 +55,7 @@ import com.google.gson.Gson;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Home extends AppCompatActivity
@@ -87,6 +78,7 @@ public class Home extends AppCompatActivity
     ObjectAnimator anim;
     Point screenSize;
     PatternLockView patternLock;
+    ImageView add_text;
     float addNotes_x1=0,addNotes_y1=0;
     boolean isAdd=false;
     private int[] menu_icons={R.drawable.dob,
@@ -94,10 +86,10 @@ public class Home extends AppCompatActivity
             R.drawable.dob,
             R.drawable.dob,
             R.drawable.dob};
-    private int[] menu_list={1,1,1,1,1,1,1,1,1,1};
+    private int[] menu_list={1,1,1,1,1};
 
-    private String[] note_title = {"Notes 1","Notes 2","Notes 3","Notes 4","Notes 5","Notes 6","Notes 7","Notes 8"};
-    private int[] notes_type={1,2,1,2,1,2,1,2};
+    List<String> note_title = new ArrayList<>();
+    List<Integer> note_type = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,19 +102,19 @@ public class Home extends AppCompatActivity
         auth=FirebaseAuth.getInstance();
         pref = getSharedPreferences("app_settings",Context.MODE_PRIVATE);
 
-        loading_profile=(ProgressBar)findViewById(R.id.loading_profile);
+        loading_profile=findViewById(R.id.loading_profile);
         loading_profile.getIndeterminateDrawable().setColorFilter(getColor(R.color.profile_text), PorterDuff.Mode.MULTIPLY);
-        appbar = (AppBarLayout)findViewById(R.id.appbar);
-        close_menu=(FloatingActionButton)findViewById(R.id.close_menu);
+        appbar = findViewById(R.id.appbar);
+        close_menu=findViewById(R.id.close_menu);
         close_menu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {appbar.setExpanded(false);}
         });
 
-        display_name=(TextView)findViewById(R.id.display_name);
+        display_name=findViewById(R.id.display_name);
         display_name.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/exo2.ttf"));
 
-        profile_menu=(ImageView)findViewById(R.id.profile_menu);
+        profile_menu=findViewById(R.id.profile_menu);
         profile_menu.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
@@ -130,10 +122,10 @@ public class Home extends AppCompatActivity
                 return false;
             }
         });
-        menu_cover=(ImageView)findViewById(R.id.menu_cover);
+        menu_cover=findViewById(R.id.menu_cover);
 
-        add_panel=(RelativeLayout) findViewById(R.id.add_panel);
-        add_notes=(FloatingActionButton)findViewById(R.id.add_notes);
+        add_panel=findViewById(R.id.add_panel);
+        add_notes=findViewById(R.id.add_notes);
         add_notes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -196,8 +188,17 @@ public class Home extends AppCompatActivity
                 colAnim.start();
             }
         });
+        add_text=findViewById(R.id.add_text);
+        add_text.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                note_title.add("Untitled");note_type.add(1);
+                loadNotes();
+            }
+        });
 
-        patternLock= (PatternLockView) findViewById(R.id.patternLock);
+
+        patternLock=findViewById(R.id.patternLock);
         patternLock.addPatternLockListener(new PatternLockViewListener() {
             @Override
             public void onStarted() {
@@ -220,13 +221,13 @@ public class Home extends AppCompatActivity
             }
         });
 
-        notePager= (ViewPager) findViewById(R.id.notesPager);
+        notePager= findViewById(R.id.notesPager);
         notePager.setClipChildren(false);
         notePager.setOffscreenPageLimit(3);
         notePager.setPageTransformer(false, new CarouselEffectTransformer(this));
-        notePager.setAdapter(new MyPagerAdapter(Home.this,note_title,notes_type));
+        loadNotes();
 
-        menuPager= (ViewPager) findViewById(R.id.menuPager);
+        menuPager= findViewById(R.id.menuPager);
         menuPager.setClipChildren(false);
         menuPager.setOffscreenPageLimit(3);
         menuPager.setPageTransformer(false, new CarouselMenuTransformer(this));
@@ -332,6 +333,8 @@ public class Home extends AppCompatActivity
         byte[] decodedByte = Base64.decode(input, 100);
         return BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length);
     }
+    public void loadNotes()
+    {notePager.setAdapter(new MyPagerAdapter(Home.this,note_title.toArray(new String[note_title.size()]),note_type.toArray(new Integer[note_type.size()])));}
     public float dptopx(float num)
     {return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, num, getResources().getDisplayMetrics());}
     public float pxtodp(float num)

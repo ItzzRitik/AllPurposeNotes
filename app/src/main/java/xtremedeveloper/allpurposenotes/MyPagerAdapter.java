@@ -18,8 +18,8 @@ public class MyPagerAdapter extends PagerAdapter{
     Context context;
     String[] listItems;
     RelativeLayout notes_text,notes_pic;
-    int []Ctype;
-    public MyPagerAdapter(Context context, String[] listItems,int[] Ctype)
+    Integer []Ctype;
+    public MyPagerAdapter(Context context, String[] listItems,Integer[] Ctype)
     {
         this.context = context;
         this.listItems = listItems;
@@ -30,24 +30,24 @@ public class MyPagerAdapter extends PagerAdapter{
     public Object instantiateItem(ViewGroup container, int position)
     {
         View view = LayoutInflater.from(context).inflate(R.layout.note_items, null);
-        CardView note_card = (CardView) view.findViewById(R.id.note_card);
+        CardView note_card = view.findViewById(R.id.note_card);
         note_card.setTag(position);
-        notes_text=(RelativeLayout)view.findViewById(R.id.notes_text);
-        notes_pic=(RelativeLayout)view.findViewById(R.id.notes_pic);
+        notes_text=view.findViewById(R.id.notes_text);
+        notes_pic=view.findViewById(R.id.notes_pic);
         try
         {
             if(Ctype[position]==1)
             {
-                notes_text.setVisibility(View.VISIBLE);notes_pic.setVisibility(View.GONE);
+                notes_text.setVisibility(View.VISIBLE);
 
-                TextView notes_title=(TextView)view.findViewById(R.id.notes_title_text);
+                TextView notes_title=view.findViewById(R.id.notes_title_text);
                 notes_title.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/exo2.ttf"));
                 notes_title.setText(listItems[position]);
             }
             else if(Ctype[position]==2)
             {
-                notes_text.setVisibility(View.GONE);notes_pic.setVisibility(View.VISIBLE);
-                TextView notes_title_pic=(TextView)view.findViewById(R.id.notes_title_pic);
+                notes_pic.setVisibility(View.VISIBLE);
+                TextView notes_title_pic=view.findViewById(R.id.notes_title_pic);
                 notes_title_pic.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/exo2.ttf"));
                 notes_title_pic.setText(listItems[position]);
             }

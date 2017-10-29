@@ -125,6 +125,10 @@ public class Home extends AppCompatActivity
         notes.edit().putInt("pagerPOS",notePager.getCurrentItem()).apply();
     }
     @Override
+    public void onDestroy() {
+        super.onDestroy();notes.edit().putInt("pagerPOS",0).apply();
+    }
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);

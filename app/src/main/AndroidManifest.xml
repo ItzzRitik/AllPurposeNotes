@@ -37,7 +37,7 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity android:name=".Home" android:theme="@style/HomeTheme"/>
-        <activity android:name=".EditTextNotes" android:theme="@style/EditTheme"/>
+        <activity android:name=".EditTextNotes" android:theme="@style/EditTheme" android:windowSoftInputMode="adjustResize"/>
     </application>
 
 </manifest>

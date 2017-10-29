@@ -45,15 +45,19 @@ public class MyPagerAdapter extends PagerAdapter{
                     public void onClick(View view) {
                         Intent edit = new Intent(context,EditTextNotes.class);
                         edit.putExtra("title",listItems[position]);
+                        edit.putExtra("position",position);
+                        edit.putExtra("text",Ntext[position]);
                         context.startActivity(edit);
                     }
                 });
+
                 TextView notes_title=view.findViewById(R.id.notes_title_text);
                 notes_title.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/exo2.ttf"));
                 notes_title.setText(listItems[position]);
+
                 TextView notes_textData=view.findViewById(R.id.notes_textData);
                 notes_textData.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/exo2.ttf"));
-                notes_title.setText(Ntext[position]);
+                notes_textData.setText(Ntext[position]);
             }
             else if(type==2)
             {

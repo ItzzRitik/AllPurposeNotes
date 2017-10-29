@@ -111,9 +111,14 @@ public class EditTextNotes extends AppCompatActivity {
                         anim = AnimationUtils.loadAnimation(EditTextNotes.this, R.anim.fade_out);editNotes.setVisibility(View.GONE);
                         new Handler().postDelayed(new Runnable() {@Override public void run() {editAnim.startAnimation(anim);}},200);}
                     @Override
-                    public void onAnimationEnd(Animator animation) {editAnim.setVisibility(View.GONE);
+                    public void onAnimationEnd(Animator animation)
+                    {
+                        editAnim.setVisibility(View.GONE);
                         textValue.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-                        windowTitle.setInputType(InputType.TYPE_CLASS_TEXT);}
+                        windowTitle.setInputType(InputType.TYPE_CLASS_TEXT);
+                        textValue.requestFocus();showKeyboard(textValue,true);
+                        textValue.setSelection(textValue.getText().length());
+                    }
                     @Override
                     public void onAnimationCancel(Animator animation) {}
                     @Override

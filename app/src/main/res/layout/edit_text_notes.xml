@@ -15,6 +15,7 @@
         android:textSize="18sp"
         android:inputType="none"
         android:textIsSelectable="true"
+        android:textColor="@color/cardHeader"
         android:textCursorDrawable="@drawable/cursor_text"
         android:gravity="top|start"/>
 

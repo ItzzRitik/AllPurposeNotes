@@ -22,8 +22,10 @@ import android.view.ViewAnimationUtils;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -74,11 +76,25 @@ public class EditTextNotes extends AppCompatActivity {
 
 
         windowTitle=customNav.findViewById(R.id.windowTitle);
+        windowTitle.setShowSoftInputOnFocus(true);
         windowTitle.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/exo2.ttf"));
         windowTitle.setText(intent.getStringExtra("title"));
+        windowTitle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(windowTitle.getInputType()!=InputType.TYPE_NULL){showKeyboard(windowTitle,true);}
+            }
+        });
 
         textValue=findViewById(R.id.textValue);
+        textValue.setShowSoftInputOnFocus(true);
         textValue.setText(intent.getStringExtra("text"));
+        textValue.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(textValue.getInputType()!=InputType.TYPE_NULL){showKeyboard(textValue,true);}
+            }
+        });
 
         editAnim=findViewById(R.id.editAnim);
         editNotes=findViewById(R.id.editNotes);
@@ -107,5 +123,18 @@ public class EditTextNotes extends AppCompatActivity {
             }
         });
 
+    }
+    public void showKeyboard(View view,boolean what)
+    {
+        if(what)
+        {
+            InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            inputMethodManager.toggleSoftInputFromWindow(view.getApplicationWindowToken(),InputMethodManager.SHOW_FORCED, 0);
+        }
+        else
+        {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 }

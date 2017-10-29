@@ -17,14 +17,15 @@ import org.w3c.dom.Text;
 
 public class MyPagerAdapter extends PagerAdapter{
     Context context;
-    String[] listItems;
+    String[] listItems,Ntext;
     RelativeLayout notes_text,notes_pic;
     String []Ctype;
-    public MyPagerAdapter(Context context, String[] listItems,String[] Ctype)
+    public MyPagerAdapter(Context context, String[] listItems,String[] Ctype,String[] Ntext)
     {
         this.context = context;
         this.listItems = listItems;
         this.Ctype=Ctype;
+        this.Ntext=Ntext;
     }
 
     @Override
@@ -50,6 +51,9 @@ public class MyPagerAdapter extends PagerAdapter{
                 TextView notes_title=view.findViewById(R.id.notes_title_text);
                 notes_title.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/exo2.ttf"));
                 notes_title.setText(listItems[position]);
+                TextView notes_textData=view.findViewById(R.id.notes_textData);
+                notes_textData.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/exo2.ttf"));
+                notes_title.setText(Ntext[position]);
             }
             else if(type==2)
             {

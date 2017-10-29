@@ -101,10 +101,18 @@ public class Home extends AppCompatActivity
         super.onResume();
         try
         {
-            note_type = new Gson().fromJson(pref.getString("note_type", null), new TypeToken<ArrayList<String>>() {}.getType());
-            note_title = new Gson().fromJson(pref.getString("note_title", null), new TypeToken<ArrayList<String>>() {}.getType());
-            note_text = new Gson().fromJson(pref.getString("note_text", null), new TypeToken<ArrayList<String>>() {}.getType());
-            loadNotes();
+            note_type = new Gson().fromJson(notes.getString("note_type", null), new TypeToken<ArrayList<String>>() {}.getType());
+            note_title = new Gson().fromJson(notes.getString("note_title", null), new TypeToken<ArrayList<String>>() {}.getType());
+            note_text = new Gson().fromJson(notes.getString("note_text", null), new TypeToken<ArrayList<String>>() {}.getType());
+            try {note_type.size();}
+            catch (NullPointerException e)
+            {
+                note_title = new ArrayList<>();
+                note_text = new ArrayList<>();
+                note_type = new ArrayList<>();
+            }
+            loadNotes(false);
+            notePager.setCurrentItem(notes.getInt("pagerPOS",0), false);
         }
         catch (NullPointerException e){}
     }
@@ -114,6 +122,7 @@ public class Home extends AppCompatActivity
         notes.edit().putString("note_type", new Gson().toJson(note_type)).apply();
         notes.edit().putString("note_title", new Gson().toJson(note_title)).apply();
         notes.edit().putString("note_text", new Gson().toJson(note_text)).apply();
+        notes.edit().putInt("pagerPOS",notePager.getCurrentItem()).apply();
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -219,7 +228,8 @@ public class Home extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 add_notes.performClick();
-                note_title.add("Text Note "+(note_title.size()+1));note_type.add("1");loadNotes();
+                note_title.add("Text Note "+(note_title.size()+1));
+                note_type.add("1");note_text.add("");loadNotes(true);
             }
         });
 
@@ -251,7 +261,7 @@ public class Home extends AppCompatActivity
         notePager.setClipChildren(false);
         notePager.setOffscreenPageLimit(3);
         notePager.setPageTransformer(false, new CarouselEffectTransformer(this));
-        loadNotes();
+        loadNotes(false);
 
         menuPager= findViewById(R.id.menuPager);
         menuPager.setClipChildren(false);
@@ -359,13 +369,17 @@ public class Home extends AppCompatActivity
         byte[] decodedByte = Base64.decode(input, 100);
         return BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length);
     }
-    public void loadNotes()
+    public void loadNotes(boolean scroll)
     {
         currentPage=notePager.getCurrentItem();
-        notePager.setAdapter(new MyPagerAdapter(Home.this,note_title.toArray(new String[note_title.size()]),note_type.toArray(new String[note_type.size()])));
+        notePager.setAdapter(new MyPagerAdapter(Home.this,note_title.toArray(new String[note_title.size()]),note_type.toArray(new String[note_type.size()]),note_text.toArray(new String[note_text.size()])));
+        if(scroll){scrollNotes();}
+    }
+    public void scrollNotes()
+    {
         notePager.setCurrentItem(currentPage, false);
         new Handler().post(new Runnable() {@Override public void run() {
-            while(currentPage<note_title.size())
+            while(currentPage<note_type.size())
             {
                 notePager.setCurrentItem(currentPage++, true);
             }

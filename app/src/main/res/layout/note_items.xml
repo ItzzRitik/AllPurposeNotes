@@ -50,8 +50,7 @@
                     android:layout_margin="10dp"
                     android:clickable="false"
                     android:textSize="16sp"
-                    android:textColor="@color/cardHeader"
-                    android:text="@string/verify2"/>
+                    android:textColor="@color/cardHeader"/>
             </RelativeLayout>
 
             <RelativeLayout

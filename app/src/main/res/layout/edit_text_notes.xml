@@ -8,6 +8,7 @@
     <EditText
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:id="@+id/textValue"
         android:background="@null"
         android:padding="15dp"
         android:textSize="18sp"

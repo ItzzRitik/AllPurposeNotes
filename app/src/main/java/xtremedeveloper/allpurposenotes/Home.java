@@ -24,6 +24,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,11 +53,14 @@ import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Home extends AppCompatActivity
 {
@@ -73,7 +77,7 @@ public class Home extends AppCompatActivity
     File rootPath;
     String userName,userId;
     Bitmap profile_pic;
-    SharedPreferences pref;
+    SharedPreferences pref,notes;
     ProgressBar loading_profile;
     ObjectAnimator anim;
     Point screenSize;
@@ -88,8 +92,29 @@ public class Home extends AppCompatActivity
             R.drawable.dob};
     private int[] menu_list={1,1,1,1,1};
     List<String> note_title = new ArrayList<>();
-    List<Integer> note_type = new ArrayList<>();
+    List<String> note_text = new ArrayList<>();
+    List<String> note_type = new ArrayList<>();
     int currentPage;
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        try
+        {
+            note_type = new Gson().fromJson(pref.getString("note_type", null), new TypeToken<ArrayList<String>>() {}.getType());
+            note_title = new Gson().fromJson(pref.getString("note_title", null), new TypeToken<ArrayList<String>>() {}.getType());
+            note_text = new Gson().fromJson(pref.getString("note_text", null), new TypeToken<ArrayList<String>>() {}.getType());
+            loadNotes();
+        }
+        catch (NullPointerException e){}
+    }
+    @Override
+    public void onPause() {
+        super.onPause();
+        notes.edit().putString("note_type", new Gson().toJson(note_type)).apply();
+        notes.edit().putString("note_title", new Gson().toJson(note_title)).apply();
+        notes.edit().putString("note_text", new Gson().toJson(note_text)).apply();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,6 +126,7 @@ public class Home extends AppCompatActivity
 
         auth=FirebaseAuth.getInstance();
         pref = getSharedPreferences("app_settings",Context.MODE_PRIVATE);
+        notes = getSharedPreferences("notes",Context.MODE_PRIVATE);
 
         loading_profile=findViewById(R.id.loading_profile);
         loading_profile.getIndeterminateDrawable().setColorFilter(getColor(R.color.profile_text), PorterDuff.Mode.MULTIPLY);
@@ -192,8 +218,8 @@ public class Home extends AppCompatActivity
         add_text.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                note_title.add("Text Note "+(note_title.size()+1));note_type.add(1);
-                loadNotes();add_notes.performClick();
+                add_notes.performClick();
+                note_title.add("Text Note "+(note_title.size()+1));note_type.add("1");loadNotes();
             }
         });
 
@@ -336,7 +362,7 @@ public class Home extends AppCompatActivity
     public void loadNotes()
     {
         currentPage=notePager.getCurrentItem();
-        notePager.setAdapter(new MyPagerAdapter(Home.this,note_title.toArray(new String[note_title.size()]),note_type.toArray(new Integer[note_type.size()])));
+        notePager.setAdapter(new MyPagerAdapter(Home.this,note_title.toArray(new String[note_title.size()]),note_type.toArray(new String[note_type.size()])));
         notePager.setCurrentItem(currentPage, false);
         new Handler().post(new Runnable() {@Override public void run() {
             while(currentPage<note_title.size())

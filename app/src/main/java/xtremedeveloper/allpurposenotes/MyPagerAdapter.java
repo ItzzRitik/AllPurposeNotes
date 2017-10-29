@@ -19,8 +19,8 @@ public class MyPagerAdapter extends PagerAdapter{
     Context context;
     String[] listItems;
     RelativeLayout notes_text,notes_pic;
-    Integer []Ctype;
-    public MyPagerAdapter(Context context, String[] listItems,Integer[] Ctype)
+    String []Ctype;
+    public MyPagerAdapter(Context context, String[] listItems,String[] Ctype)
     {
         this.context = context;
         this.listItems = listItems;
@@ -30,12 +30,13 @@ public class MyPagerAdapter extends PagerAdapter{
     @Override
     public Object instantiateItem(final ViewGroup container, final int position)
     {
+        int type=Integer.parseInt(Ctype[position]);
         View view = LayoutInflater.from(context).inflate(R.layout.note_items, null);
         CardView note_card = view.findViewById(R.id.note_card);
         note_card.setTag(position);
         try
         {
-            if(Ctype[position]==1)
+            if(type==1)
             {
                 notes_text=view.findViewById(R.id.notes_text);notes_text.setVisibility(View.VISIBLE);
                 notes_text.setOnClickListener(new View.OnClickListener() {
@@ -50,7 +51,7 @@ public class MyPagerAdapter extends PagerAdapter{
                 notes_title.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/exo2.ttf"));
                 notes_title.setText(listItems[position]);
             }
-            else if(Ctype[position]==2)
+            else if(type==2)
             {
                 notes_pic=view.findViewById(R.id.notes_pic);notes_pic.setVisibility(View.VISIBLE);
                 notes_pic.setOnClickListener(new View.OnClickListener() {

@@ -83,6 +83,7 @@ public class Home extends AppCompatActivity
     Point screenSize;
     PatternLockView patternLock;
     ImageView add_text;
+    int appbarOffset=0;
     float addNotes_x1=0,addNotes_y1=0;
     boolean isAdd=false;
     private int[] menu_icons={R.drawable.dob,
@@ -95,6 +96,13 @@ public class Home extends AppCompatActivity
     List<String> note_text = new ArrayList<>();
     List<String> note_type = new ArrayList<>();
     int currentPage;
+    @Override
+    public void onBackPressed()
+    {
+        if(appbarOffset==0){appbar.setExpanded(false);}
+        else if(isAdd){add_notes.performClick();}
+        else{finish();}
+    }
     @Override
     public void onResume()
     {
@@ -144,6 +152,12 @@ public class Home extends AppCompatActivity
         loading_profile=findViewById(R.id.loading_profile);
         loading_profile.getIndeterminateDrawable().setColorFilter(getColor(R.color.profile_text), PorterDuff.Mode.MULTIPLY);
         appbar = findViewById(R.id.appbar);
+        appbar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                appbarOffset=verticalOffset;
+            }
+        });
         close_menu=findViewById(R.id.close_menu);
         close_menu.setOnClickListener(new View.OnClickListener() {
             @Override

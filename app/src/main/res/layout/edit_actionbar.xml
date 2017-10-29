@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="fill_horizontal">
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/windowTitle"
+        android:textSize="20sp"
+        android:inputType="none"
+        android:textIsSelectable="true"
+        android:background="@null"
+        android:textColor="@color/white"
+        android:gravity="center_vertical|start"/>
+</RelativeLayout>

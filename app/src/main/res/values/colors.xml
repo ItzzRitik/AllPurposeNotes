@@ -8,4 +8,5 @@
     <color name="profile_text">#d3d3d3</color>
     <color name="colorPrimaryTrans">#d202723b</color>
     <color name="cardHeader">#3a3a3a</color>
+    <color name="white">#fff</color>
 </resources>

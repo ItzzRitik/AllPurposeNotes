@@ -52,6 +52,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -60,7 +61,13 @@ import android.widget.Toast;
 import com.flurgle.camerakit.CameraKit;
 import com.flurgle.camerakit.CameraListener;
 import com.flurgle.camerakit.CameraView;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.BooleanResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -101,14 +108,16 @@ public class login extends AppCompatActivity
     TextView signin,gender_text,verify_l1,verify_l2,verify_l4;
     ImageView ico_splash,dob_chooser,gender_swap,click,flash,camera_flip,social_google_logo,social_facebook_logo;
     RelativeLayout login_div,logo_div,splash_cover,email_reset,sign_dialog,forget_pass,gender,permission_camera;
-    RelativeLayout camera_pane,parentPanel,click_pane,galary,social_google,social_facebook;
+    RelativeLayout camera_pane,parentPanel,click_pane,galary,social_trigger,social_google,social_facebook;
+    LinearLayout socialPane;
     Animation anim;
     boolean isDP_added =false,camStarted=false,camOn=false,galaryOn=false,isflash=false,isBack=false,profile_lp=false;
-    boolean loginStarted=false;
+    boolean loginStarted=false,socialOn=false;
     EditText email,pass,con_pass,f_name,l_name,dob;
-    int logs=0;
     TrianglifyView backG;
     FirebaseAuth auth;
+    GoogleSignInOptions gso;
+    GoogleApiClient gso_client;
     DatabaseReference fdb;
     View divider3,divider4,divider5;
     CircularImageView profile;
@@ -123,6 +132,8 @@ public class login extends AppCompatActivity
     SharedPreferences pref;
     String buttonText="";
     Point screenSize;
+    private float social_Y;
+    int logs;
     @Override
     protected void onResume() {
         super.onResume();
@@ -169,6 +180,7 @@ public class login extends AppCompatActivity
         }
     }
     @Override
+    @SuppressLint("ClickableViewAccessibility")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
@@ -186,6 +198,7 @@ public class login extends AppCompatActivity
         }
         else{createActivity();}
     }
+    @SuppressLint("ClickableViewAccessibility")
     public void createActivity()
     {
         loginStarted=true;
@@ -349,6 +362,7 @@ public class login extends AppCompatActivity
                 scaleY(login_div,48,300,new AccelerateDecelerateInterpolator());
                 scaleY(forget_pass,0,300,new AccelerateDecelerateInterpolator());email_reset.setVisibility(View.GONE);email.setEnabled(true);
                 pass.setText("");con_pass.setText("");buttonText=getString(R.string.next);
+                social_trigger.setVisibility(View.VISIBLE);
                 signin.setText(getString(R.string.next));setButtonEnabled(true);logs=0;vibrate(20);
                 email.setVisibility(View.VISIBLE);pass.setVisibility(View.GONE);con_pass.setVisibility(View.GONE);
                 sign_dialog.setVisibility(View.GONE);
@@ -542,7 +556,7 @@ public class login extends AppCompatActivity
             }
         });
 
-        gender_swap=(ImageView) findViewById(R.id.gender_swap);
+        gender_swap=findViewById(R.id.gender_swap);
         gender_swap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -580,43 +594,68 @@ public class login extends AppCompatActivity
             }
         });
 
+        gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id)).requestEmail().build();
+        gso_client = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this , new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {}
+                }).addApi(Auth.GOOGLE_SIGN_IN_API, gso).build();
+
         social_google=findViewById(R.id.social_google);
         social_google_logo=findViewById(R.id.social_google_logo);
-        social_google.setOnTouchListener(new View.OnTouchListener() {
+        social_google.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                switch (motionEvent.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        scaleX(social_google_logo,(int)pxtodp(social_google.getWidth()),100,new AccelerateInterpolator());
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        scaleX(social_google_logo,50,100,new AccelerateDecelerateInterpolator());
-                        break;
-                }
-                return false;
+            public void onClick(View view) {
+                scaleX(social_google_logo,(int)pxtodp(social_google.getWidth()),150,new AccelerateInterpolator());
+                new Handler().postDelayed(new Runnable() {@Override public void run() {
+                    Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(gso_client);
+                    startActivityForResult(signInIntent,2);
+                }},50);
+
             }
         });
         social_facebook=findViewById(R.id.social_facebook);
         social_facebook_logo=findViewById(R.id.social_facebook_logo);
-        social_facebook.setOnTouchListener(new View.OnTouchListener() {
+        social_facebook.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                switch (motionEvent.getAction()) {
+            public void onClick(View view) {
+                scaleX(social_facebook_logo,(int)pxtodp(social_facebook.getWidth()),150,new AccelerateInterpolator());
+                new Handler().postDelayed(new Runnable() {@Override public void run() {
+                    Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(gso_client);
+                    startActivityForResult(signInIntent,2);
+                }},50);
+            }
+        });
+        socialPane=findViewById(R.id.socialPane);
+        social_trigger=findViewById(R.id.social_trigger);
+        social_trigger.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+                switch(event.getAction())
+                {
                     case MotionEvent.ACTION_DOWN:
-                        scaleX(social_facebook_logo,(int)pxtodp(social_facebook.getWidth()),100,new AccelerateInterpolator());
-                        break;
+                        social_Y = event.getY();break;
                     case MotionEvent.ACTION_UP:
-                        scaleX(social_facebook_logo,50,100,new AccelerateDecelerateInterpolator());
+                        if (social_Y-event.getY() > 100)
+                        {
+                            scaleY(login_div,93,300,new AccelerateDecelerateInterpolator());
+                            scaleY(socialPane,45,300,new AccelerateDecelerateInterpolator());socialOn=true;
+                        }
+                        else if (social_Y-event.getY() < -100)
+                        {
+                            scaleY(login_div,48,300,new AccelerateDecelerateInterpolator());
+                            scaleY(socialPane,0,300,new AccelerateDecelerateInterpolator());socialOn=false;
+                        }
                         break;
                 }
-                return false;
+                return true;
             }
         });
 
-        backG=(TrianglifyView)findViewById(R.id.backG);
+        backG=findViewById(R.id.backG);
         backG.setPalette(new Palette(getResources().getIntArray(R.array.theme)));
 
-        ico_splash=(ImageView)findViewById(R.id.ico_splash);
+        ico_splash=findViewById(R.id.ico_splash);
         login_div=(RelativeLayout)findViewById(R.id.login_div);
         logo_div=(RelativeLayout)findViewById(R.id.logo_div);
         sign_dialog=(RelativeLayout)findViewById(R.id.sign_dialog);
@@ -639,6 +678,12 @@ public class login extends AppCompatActivity
     public void performSignIn()
     {
         email.setEnabled(false);pass.setEnabled(false);con_pass.setEnabled(false);nextLoading(true);
+        social_trigger.setVisibility(View.GONE);
+        if(socialOn)
+        {
+            scaleY(socialPane,0,300,new AccelerateDecelerateInterpolator());
+            scaleY(login_div,48,300,new AccelerateDecelerateInterpolator());
+        }
         if(logs==0)
         {
             if(isEmailValid(email.getText().toString()))
@@ -1097,37 +1142,50 @@ public class login extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultcode, Intent intent) {
         super.onActivityResult(requestCode, resultcode, intent);
-        if (resultcode == RESULT_OK && requestCode == 1) {
+        if (requestCode == 1 && resultcode == RESULT_OK) {
             UCrop.of(intent.getData(),Uri.parse(profile_url)).withOptions(options).withAspectRatio(1,1)
                     .withMaxResultSize(maxWidth, maxHeight).start(login.this);
         }
-        if (resultcode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
-            try {
-                final Uri resultUri = UCrop.getOutput(intent);
-                Bitmap bitmap= MediaStore.Images.Media.getBitmap(login.this.getContentResolver(), resultUri);
-                profile.setImageBitmap(bitmap);profile_dp=bitmap;isDP_added=true;
-                closeCam();
-                new Handler().postDelayed(new Runnable() {@Override public void run()
-                {
-                    ToolTip.Builder builder = new ToolTip.Builder(login.this, profile,parentPanel, getString(R.string.remove_pic), ToolTip.POSITION_ABOVE);
-                    builder.setBackgroundColor(getColor(R.color.profile));
-                    builder.setTextColor(getColor(R.color.profile_text));
-                    builder.setGravity(ToolTip.GRAVITY_CENTER);
-                    builder.setTextSize(15);
-                    toolTip.show(builder.build());vibrate(35);
-                }},1000);
-                new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(profile);}},3500);
+        if (requestCode == UCrop.REQUEST_CROP) {
+            if(resultcode == RESULT_OK)
+            {
+                try {
+                    final Uri resultUri = UCrop.getOutput(intent);
+                    Bitmap bitmap= MediaStore.Images.Media.getBitmap(login.this.getContentResolver(), resultUri);
+                    profile.setImageBitmap(bitmap);profile_dp=bitmap;isDP_added=true;
+                    closeCam();
+                    new Handler().postDelayed(new Runnable() {@Override public void run()
+                    {
+                        ToolTip.Builder builder = new ToolTip.Builder(login.this, profile,parentPanel, getString(R.string.remove_pic), ToolTip.POSITION_ABOVE);
+                        builder.setBackgroundColor(getColor(R.color.profile));
+                        builder.setTextColor(getColor(R.color.profile_text));
+                        builder.setGravity(ToolTip.GRAVITY_CENTER);
+                        builder.setTextSize(15);
+                        toolTip.show(builder.build());vibrate(35);
+                    }},1000);
+                    new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(profile);}},3500);
+                    new File(getRealPathFromURI(login.this,Uri.parse(profile_path))).delete();
+                }
+                catch (Exception e){}
+            }
+            else if (resultcode == UCrop.RESULT_ERROR) {
+                final Throwable cropError = UCrop.getError(intent);
+                Toast.makeText(login.this,getString(R.string.error)+cropError, Toast.LENGTH_LONG).show();
                 new File(getRealPathFromURI(login.this,Uri.parse(profile_path))).delete();
             }
-            catch (Exception e){}
         }
-        else if (resultcode == UCrop.RESULT_ERROR) {
-            final Throwable cropError = UCrop.getError(intent);
-            Toast.makeText(login.this,getString(R.string.error)+cropError, Toast.LENGTH_LONG).show();
-            new File(getRealPathFromURI(login.this,Uri.parse(profile_path))).delete();
+        else if (requestCode == 2) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(intent);
+            scaleX(social_google_logo,50,100,new AccelerateDecelerateInterpolator());
+            if (result.isSuccess()) {
+                GoogleSignInAccount account = result.getSignInAccount();
+                Toast.makeText(this, "Hello Mr. "+account.getDisplayName(), Toast.LENGTH_SHORT).show();
+
+            } else {
+
+            }
         }
     }
-
     public String getRealPathFromURI(Context context, Uri contentUri) {
         Cursor cursor = null;
         try {

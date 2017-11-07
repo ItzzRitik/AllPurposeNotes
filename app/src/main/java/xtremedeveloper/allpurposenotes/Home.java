@@ -16,6 +16,7 @@ import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -171,7 +172,9 @@ public class Home extends AppCompatActivity
         profile_menu.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                auth.signOut();startActivity(new Intent(Home.this,login.class));finish();
+                auth.signOut();
+                pref.edit().clear().apply();notes.edit().clear().apply();
+                startActivity(new Intent(Home.this,login.class));finish();
                 return false;
             }
         });
@@ -214,7 +217,7 @@ public class Home extends AppCompatActivity
                     @Override public void onAnimationEnd(Animator animator) {
                         if(isAdd)
                         {
-                            scaleX(add_panel,300,250,new OvershootInterpolator());add_notes.setElevation(0);
+                            scaleX(add_panel,250,250,new OvershootInterpolator());add_notes.setElevation(0);
                         }
                         else {add_notes.setElevation(6);}
                     }

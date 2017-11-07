@@ -24,9 +24,12 @@ import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Base64;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -86,7 +89,7 @@ public class Home extends AppCompatActivity
     ImageView add_text;
     int appbarOffset=0;
     float addNotes_x1=0,addNotes_y1=0;
-    boolean isAdd=false;
+    boolean isAdd=false,signIn=true;
     private int[] menu_icons={R.drawable.dob,
             R.drawable.dob,
             R.drawable.dob,
@@ -128,15 +131,19 @@ public class Home extends AppCompatActivity
     @Override
     public void onPause() {
         super.onPause();
-        notes.edit().putString("note_type", new Gson().toJson(note_type)).apply();
-        notes.edit().putString("note_title", new Gson().toJson(note_title)).apply();
-        notes.edit().putString("note_text", new Gson().toJson(note_text)).apply();
-        notes.edit().putInt("pagerPOS",notePager.getCurrentItem()).apply();
+        if(signIn)
+        {
+            notes.edit().putString("note_type", new Gson().toJson(note_type)).apply();
+            notes.edit().putString("note_title", new Gson().toJson(note_title)).apply();
+            notes.edit().putString("note_text", new Gson().toJson(note_text)).apply();
+            notes.edit().putInt("pagerPOS",notePager.getCurrentItem()).apply();
+        }
     }
     @Override
     public void onDestroy() {
         super.onDestroy();notes.edit().putInt("pagerPOS",0).apply();
     }
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -172,8 +179,9 @@ public class Home extends AppCompatActivity
         profile_menu.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                auth.signOut();
+                auth.signOut();signIn=false;
                 pref.edit().clear().apply();notes.edit().clear().apply();
+                notes.edit().clear().apply();notes.edit().clear().apply();
                 startActivity(new Intent(Home.this,login.class));finish();
                 return false;
             }
@@ -278,6 +286,7 @@ public class Home extends AppCompatActivity
             }
         });
 
+
         notePager= findViewById(R.id.notesPager);
         notePager.setClipChildren(false);
         notePager.setOffscreenPageLimit(3);
@@ -344,8 +353,8 @@ public class Home extends AppCompatActivity
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception exception) {
-                    Toast.makeText(Home.this, exception.toString(), Toast.LENGTH_SHORT).show();
-                    profile_menu.setImageResource(R.mipmap.boy);
+                    Toast.makeText(Home.this,"Uploading a display picture is recommended", Toast.LENGTH_SHORT).show();
+                    profile_menu.setImageResource(R.mipmap.boy);loading_profile.setVisibility(View.GONE);
                     try{if(user.getgender().equals("SHE")){profile_menu.setImageResource(R.mipmap.girl);}}
                     catch (NullPointerException e){}
                 }

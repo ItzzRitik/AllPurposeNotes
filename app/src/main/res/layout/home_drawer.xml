@@ -19,7 +19,7 @@
             android:layout_width="150dp"
             android:layout_height="150dp"
             android:layout_alignParentStart="true"
-            android:layout_marginTop="125.5dp"
+            android:layout_marginTop="121dp"
             android:layout_marginStart="8.5dp"
             android:id="@+id/profile_menu_cov">
             <RelativeLayout
@@ -64,12 +64,12 @@
             android:layout_below="@+id/display_name"
             android:clipToPadding="false"
             android:overScrollMode="never"
-            android:paddingLeft="80dp"
-            android:paddingRight="180dp"
+            android:paddingStart="75dp"
+            android:paddingEnd="155dp"
             android:paddingTop="20dp"
             android:paddingBottom="20dp"
             android:transitionGroup="true"
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="30dp"
             android:layout_marginBottom="0dp"
             android:layout_marginStart="-80dp"/>
         <com.andrognito.patternlockview.PatternLockView

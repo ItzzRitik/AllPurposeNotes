@@ -14,7 +14,7 @@
         android:layout_centerInParent="true"
         android:paddingLeft="20dp"
         android:paddingRight="20dp"
-        android:paddingTop="100dp"
+        android:paddingTop="95dp"
         android:paddingBottom="20dp"
         android:background="#dedede"/>
 

@@ -99,9 +99,9 @@ import static android.R.attr.maxWidth;
 public class login extends AppCompatActivity
 {
     TextView signin,gender_text,verify_l1,verify_l2,verify_l4;
-    ImageView ico_splash,dob_chooser,gender_swap,click,flash,camera_flip;
+    ImageView ico_splash,dob_chooser,gender_swap,click,flash,camera_flip,social_google_logo,social_facebook_logo;
     RelativeLayout login_div,logo_div,splash_cover,email_reset,sign_dialog,forget_pass,gender,permission_camera;
-    RelativeLayout camera_pane,parentPanel,click_pane,galary;
+    RelativeLayout camera_pane,parentPanel,click_pane,galary,social_google,social_facebook;
     Animation anim;
     boolean isDP_added =false,camStarted=false,camOn=false,galaryOn=false,isflash=false,isBack=false,profile_lp=false;
     boolean loginStarted=false;
@@ -577,6 +577,39 @@ public class login extends AppCompatActivity
                         break;
                 }
                 return true;
+            }
+        });
+
+        social_google=findViewById(R.id.social_google);
+        social_google_logo=findViewById(R.id.social_google_logo);
+        social_google.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        scaleX(social_google_logo,(int)pxtodp(social_google.getWidth()),100,new AccelerateInterpolator());
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        scaleX(social_google_logo,50,100,new AccelerateDecelerateInterpolator());
+                        break;
+                }
+                return false;
+            }
+        });
+        social_facebook=findViewById(R.id.social_facebook);
+        social_facebook_logo=findViewById(R.id.social_facebook_logo);
+        social_facebook.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        scaleX(social_facebook_logo,(int)pxtodp(social_facebook.getWidth()),100,new AccelerateInterpolator());
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        scaleX(social_facebook_logo,50,100,new AccelerateDecelerateInterpolator());
+                        break;
+                }
+                return false;
             }
         });
 

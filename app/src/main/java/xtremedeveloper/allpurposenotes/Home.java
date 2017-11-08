@@ -58,6 +58,11 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
+import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -87,6 +92,7 @@ public class Home extends AppCompatActivity
     Point screenSize;
     PatternLockView patternLock;
     ImageView add_text;
+    ImageLoader imageLoader;
     int appbarOffset=0;
     float addNotes_x1=0,addNotes_y1=0;
     boolean isAdd=false,signIn=true;
@@ -152,6 +158,10 @@ public class Home extends AppCompatActivity
         setContentView(R.layout.activity_home);
         screenSize = new Point();
         getWindowManager().getDefaultDisplay().getSize(screenSize);
+        imageLoader = ImageLoader.getInstance();
+
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this).build();
+        ImageLoader.getInstance().init(config);
 
         auth=FirebaseAuth.getInstance();
         pref = getSharedPreferences("app_settings",Context.MODE_PRIVATE);
@@ -326,37 +336,33 @@ public class Home extends AppCompatActivity
     }
     public void getDP()
     {
-        String userDataFolder=userName.substring(0,userName.indexOf(' '))+userId.substring(0,userId.length()/3);
-        rootPath = new File(getCacheDir(),"AllPurposeNotes/"+userDataFolder);
-        if(!rootPath.exists()){rootPath.mkdirs();}
         profile_menu.setImageResource(R.mipmap.boy);loading_profile.setVisibility(View.VISIBLE);
         if(user.getgender().equals("SHE")){profile_menu.setImageResource(R.mipmap.girl);}
         profile_pic=decodeBase64(pref.getString(userId+"profile_pic",""));
-        if(profile_pic!=null) {
+        if(profile_pic!=null)
+        {
             profile_menu.setImageBitmap(profile_pic);menu_cover.setImageBitmap(profile_pic);
-            loading_profile.setVisibility(View.GONE);}
+            loading_profile.setVisibility(View.GONE);
+        }
         else
         {
-            fbs = FirebaseStorage.getInstance().getReference().child("UserDP/"+userId+".jpg");
-            final File localFile = new File(rootPath,"picture.jpg");
-            fbs.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                @SuppressLint("ApplySharedPref")
+            ImageLoader imageLoader = ImageLoader.getInstance();
+            imageLoader.loadImage(auth.getCurrentUser().getPhotoUrl().toString(), new ImageLoadingListener() {
+                @Override public void onLoadingStarted(String imageUri, View view) {}
+                @Override public void onLoadingCancelled(String imageUri, View view) {}
                 @Override
-                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                    Bitmap bitmap = BitmapFactory.decodeFile(localFile.toString(), new BitmapFactory.Options());
-                    SharedPreferences.Editor editor = pref.edit();
-                    editor.putString(userId+"profile_pic", encodeTobase64(bitmap));
-                    editor.commit();
-                    if (!localFile.delete()){localFile.delete();}
-                    getDP();
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception exception) {
+                public void onLoadingFailed(String imageUri, View view, FailReason failReason)
+                {
                     Toast.makeText(Home.this,"Uploading a display picture is recommended", Toast.LENGTH_SHORT).show();
                     profile_menu.setImageResource(R.mipmap.boy);loading_profile.setVisibility(View.GONE);
                     try{if(user.getgender().equals("SHE")){profile_menu.setImageResource(R.mipmap.girl);}}
                     catch (NullPointerException e){}
+                }
+                @Override
+                public void onLoadingComplete(String imageUri, View view, Bitmap bitmap) {
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putString(userId+"profile_pic", encodeTobase64(bitmap));
+                    editor.commit();getDP();
                 }
             });
         }

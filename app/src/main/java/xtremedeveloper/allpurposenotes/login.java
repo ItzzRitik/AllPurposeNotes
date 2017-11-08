@@ -62,20 +62,25 @@ import com.flurgle.camerakit.CameraKit;
 import com.flurgle.camerakit.CameraListener;
 import com.flurgle.camerakit.CameraView;
 import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.BooleanResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -874,7 +879,7 @@ public class login extends AppCompatActivity
                                             if (task.isSuccessful()) {profile.setEnabled(true);}
                                         }
                                     });
-                            upload_data();
+                            upload_data(new user_details(f_name.getText().toString(),l_name.getText().toString(),gender_text.getText().toString(),dob.getText().toString()));
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
@@ -896,20 +901,19 @@ public class login extends AppCompatActivity
                             if (task.isSuccessful()) {profile.setEnabled(true);}
                         }
                     });
-            upload_data();
+            upload_data(new user_details(f_name.getText().toString(),l_name.getText().toString(),gender_text.getText().toString(),dob.getText().toString()));
         }
     }
     @SuppressLint("ApplySharedPref")
-    public void upload_data()
+    public void upload_data(user_details user)
     {
-        user_details user=new user_details(f_name.getText().toString(),l_name.getText().toString(),gender_text.getText().toString(),dob.getText().toString());
         fdb= FirebaseDatabase.getInstance().getReference("user_details");
         fdb.child(auth.getCurrentUser().getUid()).setValue(user);
         dp_Loader.setVisibility(View.GONE);
         SharedPreferences.Editor prefsEditor = pref.edit();
         prefsEditor.putString(auth.getCurrentUser().getUid()+"user_details", new Gson().toJson(user));
         prefsEditor.commit();
-        new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},200);
+        new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},2000);
     }
     public void closeCam()
     {
@@ -1174,16 +1178,56 @@ public class login extends AppCompatActivity
                 new File(getRealPathFromURI(login.this,Uri.parse(profile_path))).delete();
             }
         }
-        else if (requestCode == 2) {
+        else if (requestCode == 2)
+        {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(intent);
-            scaleX(social_google_logo,50,100,new AccelerateDecelerateInterpolator());
-            if (result.isSuccess()) {
-                GoogleSignInAccount account = result.getSignInAccount();
-                Toast.makeText(this, "Hello Mr. "+account.getDisplayName(), Toast.LENGTH_SHORT).show();
-
-            } else {
-
+            if (result.isSuccess())
+            {
+                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(intent);
+                try
+                {
+                    final GoogleSignInAccount account = task.getResult(ApiException.class);
+                    AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+                    auth.signInWithCredential(credential)
+                            .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    if (task.isSuccessful())
+                                    {
+                                        Toast.makeText(login.this, "Success", Toast.LENGTH_SHORT).show();
+                                        fdb= FirebaseDatabase.getInstance().getReference("user_details");
+                                        fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                user_details user1=dataSnapshot.getValue(user_details.class);
+                                                try
+                                                {
+                                                    user1.getfname();email_reset.performClick();
+                                                    new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},1500);
+                                                    signin.setText("✓");
+                                                }
+                                                catch (NullPointerException e)
+                                                {
+                                                    String fName=account.getDisplayName().substring(0,account.getDisplayName().indexOf(" "));
+                                                    String lName=account.getDisplayName().substring(account.getDisplayName().indexOf(" "));
+                                                    Toast.makeText(login.this, fName+" + "+lName, Toast.LENGTH_SHORT).show();
+                                                    //upload_data(new user_details(,l_name.getText().toString(),gender_text.getText().toString(),dob.getText().toString()));
+                                                    scaleX(social_google_logo,50,100,new AccelerateDecelerateInterpolator());
+                                                }
+                                                catch (Exception e) {Toast.makeText(login.this, e.toString(), Toast.LENGTH_SHORT).show();}
+                                            }
+                                            @Override
+                                            public void onCancelled(DatabaseError error) {}
+                                        });
+                                    }
+                                    else {
+                                    }
+                                }
+                            });
+                }
+                catch (ApiException e) {}
             }
+            else {}
         }
     }
     public String getRealPathFromURI(Context context, Uri contentUri) {

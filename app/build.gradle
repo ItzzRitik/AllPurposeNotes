@@ -34,6 +34,7 @@ dependencies {
     compile 'com.google.firebase:firebase-auth:11.6.0'
     compile 'com.google.firebase:firebase-database:11.6.0'
     compile 'com.google.android.gms:play-services-auth:11.6.0'
+    compile 'com.google.android.gms:play-services-plus:11.6.0'
     compile 'com.tomergoldst.android:tooltips:1.0.6'
     compile 'com.flurgle:camerakit:0.9.17'
     compile 'com.github.yalantis:ucrop:2.2.1'

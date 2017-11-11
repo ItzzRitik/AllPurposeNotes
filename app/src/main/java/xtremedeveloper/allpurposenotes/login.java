@@ -113,8 +113,7 @@ public class login extends AppCompatActivity
     TextView signin,gender_text,verify_l1,verify_l2,verify_l4;
     ImageView ico_splash,dob_chooser,gender_swap,click,flash,camera_flip,social_google_logo,social_facebook_logo;
     RelativeLayout login_div,logo_div,splash_cover,email_reset,sign_dialog,forget_pass,gender,permission_camera;
-    RelativeLayout camera_pane,parentPanel,click_pane,galary,social_trigger,social_google,social_facebook;
-    LinearLayout socialPane;
+    RelativeLayout camera_pane,parentPanel,click_pane,galary,social_trigger,social_google,social_facebook,socialPane;
     Animation anim;
     boolean isDP_added =false,camStarted=false,camOn=false,galaryOn=false,isflash=false,isBack=false,profile_lp=false;
     boolean loginStarted=false,socialOn=false;
@@ -122,6 +121,7 @@ public class login extends AppCompatActivity
     TrianglifyView backG;
     FirebaseAuth auth;
     GoogleSignInOptions gso;
+    StorageReference storageReference;
     GoogleApiClient gso_client;
     DatabaseReference fdb;
     View divider3,divider4,divider5;
@@ -193,6 +193,7 @@ public class login extends AppCompatActivity
         screenSize = new Point();
         getWindowManager().getDefaultDisplay().getSize(screenSize);
         auth = FirebaseAuth.getInstance();
+        storageReference= FirebaseStorage.getInstance().getReference();
         pref = getSharedPreferences("app_settings",Context.MODE_PRIVATE);
         if(auth.getCurrentUser()!=null)
         {
@@ -208,9 +209,10 @@ public class login extends AppCompatActivity
     {
         loginStarted=true;
         setContentView(R.layout.activity_login);
+
         toolTip = new ToolTipsManager();
-        parentPanel=(RelativeLayout) findViewById(R.id.parentPanel);
-        email=(EditText)findViewById(R.id.email);
+        parentPanel= findViewById(R.id.parentPanel);
+        email=findViewById(R.id.email);
         email.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -243,7 +245,7 @@ public class login extends AppCompatActivity
             }
         });
 
-        pass=(EditText)findViewById(R.id.pass);
+        pass=findViewById(R.id.pass);
         pass.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -303,7 +305,7 @@ public class login extends AppCompatActivity
             }
         });
 
-        con_pass=(EditText)findViewById(R.id.con_pass);
+        con_pass=findViewById(R.id.con_pass);
         con_pass.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -339,7 +341,7 @@ public class login extends AppCompatActivity
             }
         });
 
-        forget_pass =(RelativeLayout)findViewById(R.id.forget_pass);
+        forget_pass =findViewById(R.id.forget_pass);
         forget_pass.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -360,7 +362,7 @@ public class login extends AppCompatActivity
                         });
             }
         });
-        email_reset=(RelativeLayout)findViewById(R.id.email_reset);
+        email_reset=findViewById(R.id.email_reset);
         email_reset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -375,14 +377,14 @@ public class login extends AppCompatActivity
             }
         });
 
-        f_name=(EditText)findViewById(R.id.f_name);
+        f_name=findViewById(R.id.f_name);
         f_name.addTextChangedListener(new TextWatcher() {
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void afterTextChanged(Editable s) {final_signUp();}
         });
-        l_name=(EditText)findViewById(R.id.l_name);
-        dob=(EditText)findViewById(R.id.dob);
+        l_name=findViewById(R.id.l_name);
+        dob=findViewById(R.id.dob);
         dob.addTextChangedListener(new TextWatcher() {
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -391,7 +393,7 @@ public class login extends AppCompatActivity
         divider3=findViewById(R.id.divider3);
         divider4=findViewById(R.id.divider4);
         divider5=findViewById(R.id.divider5);
-        dob_chooser=(ImageView)findViewById(R.id.dob_chooser);
+        dob_chooser=findViewById(R.id.dob_chooser);
         dob_chooser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -414,19 +416,19 @@ public class login extends AppCompatActivity
             }
         });
 
-        verify_l1=(TextView)findViewById(R.id.verify_l1);
-        verify_l2=(TextView)findViewById(R.id.verify_l2);
-        verify_l4=(TextView)findViewById(R.id.verify_l4);
+        verify_l1=findViewById(R.id.verify_l1);
+        verify_l2=findViewById(R.id.verify_l2);
+        verify_l4=findViewById(R.id.verify_l4);
         verify_l4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 resendVerification();
             }
         });
-        gender_text=(TextView)findViewById(R.id.gender_text);
+        gender_text=findViewById(R.id.gender_text);
         gender_text.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/vdub.ttf"));
 
-        cameraView=(CameraView)findViewById(R.id.cam);
+        cameraView=findViewById(R.id.cam);
         options=new UCrop.Options();
         options.setCircleDimmedLayer(true);
         options.setShowCropFrame(false);
@@ -453,8 +455,8 @@ public class login extends AppCompatActivity
             }
         });
 
-        permission_camera=(RelativeLayout)findViewById(R.id.permission_camera) ;
-        allow_camera =(Button)findViewById(R.id.allow_camera);
+        permission_camera=findViewById(R.id.permission_camera) ;
+        allow_camera =findViewById(R.id.allow_camera);
         allow_camera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -463,9 +465,9 @@ public class login extends AppCompatActivity
                         new String[]{android.Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.RECORD_AUDIO}, 1);
             }
         });
-        click_pane=(RelativeLayout)findViewById(R.id.click_pane);
-        galary=(RelativeLayout) findViewById(R.id.galary);
-        flash=(ImageView)findViewById(R.id.flash);
+        click_pane=findViewById(R.id.click_pane);
+        galary= findViewById(R.id.galary);
+        flash=findViewById(R.id.flash);
         flash.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -474,7 +476,7 @@ public class login extends AppCompatActivity
                 else {cameraView.setFlash(CameraKit.Constants.FLASH_OFF);isflash=false;flash.setImageResource(R.drawable.flash_off);}
             }
         });
-        camera_flip=(ImageView)findViewById(R.id.camera_flip);
+        camera_flip=findViewById(R.id.camera_flip);
         camera_flip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -483,7 +485,7 @@ public class login extends AppCompatActivity
                 else {cameraView.setFacing(CameraKit.Constants.FACING_FRONT);isBack=false;}
             }
         });
-        click=(ImageView)findViewById(R.id.click);
+        click=findViewById(R.id.click);
         click.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -579,8 +581,8 @@ public class login extends AppCompatActivity
             }
         });
 
-        nextLoad=(ProgressBar)findViewById(R.id.nextLoad);
-        signin=(TextView)findViewById(R.id.signin);setButtonEnabled(false);
+        nextLoad=findViewById(R.id.nextLoad);
+        signin=findViewById(R.id.signin);setButtonEnabled(false);
         signin.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/vdub.ttf"));
         signin.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -661,11 +663,11 @@ public class login extends AppCompatActivity
         backG.setPalette(new Palette(getResources().getIntArray(R.array.theme)));
 
         ico_splash=findViewById(R.id.ico_splash);
-        login_div=(RelativeLayout)findViewById(R.id.login_div);
-        logo_div=(RelativeLayout)findViewById(R.id.logo_div);
-        sign_dialog=(RelativeLayout)findViewById(R.id.sign_dialog);
-        splash_cover=(RelativeLayout)findViewById(R.id.splash_cover);
-        gender=(RelativeLayout)findViewById(R.id.gender);
+        login_div=findViewById(R.id.login_div);
+        logo_div=findViewById(R.id.logo_div);
+        sign_dialog=findViewById(R.id.sign_dialog);
+        splash_cover=findViewById(R.id.splash_cover);
+        gender=findViewById(R.id.gender);
 
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -858,7 +860,6 @@ public class login extends AppCompatActivity
         scaleY(login_div,0,300,new AccelerateDecelerateInterpolator());
         if(isDP_added)
         {
-            StorageReference storageReference= FirebaseStorage.getInstance().getReference();
             StorageReference riversRef = storageReference.child("UserDP/"+auth.getCurrentUser().getUid()+".jpg");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             //noinspection SuspiciousNameCombination
@@ -1084,11 +1085,6 @@ public class login extends AppCompatActivity
             lp.removeRule(RelativeLayout.ALIGN_PARENT_END);lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
             signin.setLayoutParams(lp);
         }
-        /*else
-        {
-            signin.animate().translationX((signin.getX()-((login_div.getWidth()/2)-(signin.getWidth()/2))));
-            nextLoad.animate().translationX((signin.getX()-((login_div.getWidth()/2)-(signin.getWidth()/2))));
-        }*/
     }
     public static void setMargins (View v, int l, int t, int r, int b) {
         if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
@@ -1202,16 +1198,25 @@ public class login extends AppCompatActivity
                                                 user_details user1=dataSnapshot.getValue(user_details.class);
                                                 try
                                                 {
-                                                    user1.getfname();email_reset.performClick();
+                                                    Toast.makeText(login.this, user1.getfname(), Toast.LENGTH_SHORT).show();
+                                                    storageReference.child("UserDP/"+auth.getCurrentUser().getUid()+".jpg").getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                                        @Override
+                                                        public void onSuccess(Uri uri) {
+                                                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder().setPhotoUri(uri).build();
+                                                            auth.getCurrentUser().updateProfile(profileUpdates);
+                                                        }
+                                                    }).addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception exception) {
+                                                        }
+                                                    });
                                                     new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},1500);
                                                     signin.setText("✓");
                                                 }
                                                 catch (NullPointerException e)
                                                 {
-                                                    String fName=account.getDisplayName().substring(0,account.getDisplayName().indexOf(" "));
-                                                    String lName=account.getDisplayName().substring(account.getDisplayName().indexOf(" "));
-                                                    Toast.makeText(login.this, fName+" + "+lName, Toast.LENGTH_SHORT).show();
-                                                    //upload_data(new user_details(,l_name.getText().toString(),gender_text.getText().toString(),dob.getText().toString()));
+                                                    Toast.makeText(login.this, account.getGivenName()+" + "+account.getFamilyName(), Toast.LENGTH_SHORT).show();
+                                                    //upload_data(new user_details(account.getGivenName(),account.getFamilyName(),account.,dob.getText().toString()));
                                                     scaleX(social_google_logo,50,100,new AccelerateDecelerateInterpolator());
                                                 }
                                                 catch (Exception e) {Toast.makeText(login.this, e.toString(), Toast.LENGTH_SHORT).show();}

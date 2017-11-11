@@ -123,6 +123,7 @@ public class login extends AppCompatActivity
     GoogleSignInOptions gso;
     StorageReference storageReference;
     GoogleApiClient gso_client;
+    GoogleSignInAccount account;
     DatabaseReference fdb;
     View divider3,divider4,divider5;
     CircularImageView profile;
@@ -139,6 +140,7 @@ public class login extends AppCompatActivity
     Point screenSize;
     private float social_Y;
     int logs;
+    user_details userD;
     @Override
     protected void onResume() {
         super.onResume();
@@ -509,10 +511,10 @@ public class login extends AppCompatActivity
                 if(camStarted){cameraView.captureImage();}
             }
         });
-        camera_pane=(RelativeLayout)findViewById(R.id.camera_pane);
-        dp_Loader=(ProgressBar) findViewById(R.id.dp_Loader);
+        camera_pane=findViewById(R.id.camera_pane);
+        dp_Loader= findViewById(R.id.dp_Loader);
         dp_Loader.getIndeterminateDrawable().setColorFilter(getColor(R.color.profile_text), PorterDuff.Mode.MULTIPLY);
-        profile=(CircularImageView)findViewById(R.id.profile);
+        profile=findViewById(R.id.profile);
         profile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -1182,7 +1184,7 @@ public class login extends AppCompatActivity
                 Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(intent);
                 try
                 {
-                    final GoogleSignInAccount account = task.getResult(ApiException.class);
+                    account = task.getResult(ApiException.class);
                     AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
                     auth.signInWithCredential(credential)
                             .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -1195,29 +1197,36 @@ public class login extends AppCompatActivity
                                         fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
                                             @Override
                                             public void onDataChange(DataSnapshot dataSnapshot) {
-                                                user_details user1=dataSnapshot.getValue(user_details.class);
+                                                scaleX(social_google_logo,50,100,new AccelerateDecelerateInterpolator());
+                                                userD=dataSnapshot.getValue(user_details.class);
                                                 try
                                                 {
-                                                    Toast.makeText(login.this, user1.getfname(), Toast.LENGTH_SHORT).show();
+                                                    Toast.makeText(login.this, userD.getfname(), Toast.LENGTH_SHORT).show();
                                                     storageReference.child("UserDP/"+auth.getCurrentUser().getUid()+".jpg").getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                                         @Override
                                                         public void onSuccess(Uri uri) {
-                                                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder().setPhotoUri(uri).build();
+                                                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                                                    .setDisplayName(userD.getfname()+" "+userD.getlname())
+                                                                    .setPhotoUri(uri).build();
                                                             auth.getCurrentUser().updateProfile(profileUpdates);
                                                         }
                                                     }).addOnFailureListener(new OnFailureListener() {
                                                         @Override
-                                                        public void onFailure(@NonNull Exception exception) {
-                                                        }
+                                                        public void onFailure(@NonNull Exception exception) {}
                                                     });
                                                     new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},1500);
                                                     signin.setText("✓");
                                                 }
                                                 catch (NullPointerException e)
                                                 {
-                                                    Toast.makeText(login.this, account.getGivenName()+" + "+account.getFamilyName(), Toast.LENGTH_SHORT).show();
+
+                                                    email_reset.performClick();email.setText(account.getEmail());
+                                                    scaleY(socialPane,0,300,new AccelerateDecelerateInterpolator());
+                                                    pass.setVisibility(View.VISIBLE);con_pass.setVisibility(View.VISIBLE);scaleY(login_div,148,300,new AccelerateDecelerateInterpolator());
+                                                    email_reset.setVisibility(View.VISIBLE);buttonText=getString(R.string.signup);pass.requestFocus();
+                                                    pass.setEnabled(true);nextLoading(false);setButtonEnabled(false);logs=2;
+
                                                     //upload_data(new user_details(account.getGivenName(),account.getFamilyName(),account.,dob.getText().toString()));
-                                                    scaleX(social_google_logo,50,100,new AccelerateDecelerateInterpolator());
                                                 }
                                                 catch (Exception e) {Toast.makeText(login.this, e.toString(), Toast.LENGTH_SHORT).show();}
                                             }
@@ -1229,10 +1238,15 @@ public class login extends AppCompatActivity
                                     }
                                 }
                             });
+
                 }
                 catch (ApiException e) {}
+                catch (Exception e){
+                    email_reset.performClick();scaleY(socialPane,0,300,new AccelerateDecelerateInterpolator());
+                    email.setText(account.getEmail());performSignIn();
+                }
             }
-            else {}
+            else {scaleX(social_google_logo,50,100,new AccelerateDecelerateInterpolator());}
         }
     }
     public String getRealPathFromURI(Context context, Uri contentUri) {

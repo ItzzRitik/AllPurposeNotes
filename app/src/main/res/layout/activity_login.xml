@@ -160,7 +160,7 @@
                 android:inputType="textEmailAddress"
                 android:textColorHint="#c7c7c7"
                 android:maxLines="1"
-                android:paddingEnd="100dp"
+                android:paddingEnd="10dp"
                 android:fontFamily="sans-serif"
                 android:paddingStart="10dp"/>
             <RelativeLayout

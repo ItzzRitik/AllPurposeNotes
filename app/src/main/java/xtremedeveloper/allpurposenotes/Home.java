@@ -45,6 +45,12 @@ import android.widget.Toast;
 
 import com.andrognito.patternlockview.PatternLockView;
 import com.andrognito.patternlockview.listener.PatternLockViewListener;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -80,10 +86,10 @@ public class Home extends AppCompatActivity
     ViewPager notePager,menuPager;
     ImageView profile_menu,menu_cover;
     FirebaseAuth auth;
-    StorageReference fbs;
+    GoogleSignInOptions gso;
+    GoogleApiClient gso_client;
     DatabaseReference fdb;
     user_details user;
-    File rootPath;
     String userName,userId;
     Bitmap profile_pic;
     SharedPreferences pref,notes;
@@ -185,10 +191,17 @@ public class Home extends AppCompatActivity
         display_name=findViewById(R.id.display_name);
         display_name.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/exo2.ttf"));
 
+        gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id)).requestEmail().build();
+        gso_client = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this , new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {}
+                }).addApi(Auth.GOOGLE_SIGN_IN_API, gso).build();
         profile_menu=findViewById(R.id.profile_menu);
         profile_menu.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
+                Auth.GoogleSignInApi.signOut(gso_client);
                 auth.signOut();signIn=false;
                 pref.edit().clear().apply();notes.edit().clear().apply();
                 notes.edit().clear().apply();notes.edit().clear().apply();

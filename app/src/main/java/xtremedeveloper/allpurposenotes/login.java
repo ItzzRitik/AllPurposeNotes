@@ -687,10 +687,11 @@ public class login extends AppCompatActivity
                 ico_splash.setImageResource(R.mipmap.logo);
                 Animation anima = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_reveal);
                 logo_div.setVisibility(View.VISIBLE);logo_div.startAnimation(anima);ico_splash.startAnimation(anim);
-                new Handler().postDelayed(new Runnable()
-                {@Override public void run() {scaleY(login_div,48,300,new AccelerateDecelerateInterpolator());social_trigger.setVisibility(View.VISIBLE);}},800);
-            }
-        },1500);
+                new Handler().postDelayed(new Runnable() {@Override public void run() {
+                    scaleY(login_div,48,300,new AccelerateDecelerateInterpolator());}},800);
+                new Handler().postDelayed(new Runnable() {@Override public void run() {
+                    social_trigger.setVisibility(View.VISIBLE);}},1500);
+            }},1500);
     }
     public void performSignIn()
     {
@@ -752,11 +753,11 @@ public class login extends AppCompatActivity
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
                                         final user_details user=dataSnapshot.getValue(user_details.class);
+                                        scaleY(forget_pass,0,300,new AccelerateDecelerateInterpolator());
                                         try
                                         {
-                                            user.getfname();email_reset.performClick();
+                                            user.getfname();newPageAnim();
                                             new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},1500);
-                                            signin.setText("✓");
                                         }
                                         catch (NullPointerException e)
                                         {
@@ -765,7 +766,6 @@ public class login extends AppCompatActivity
                                             builder.setTextColor(getColor(R.color.profile_text));
                                             builder.setGravity(ToolTip.GRAVITY_CENTER);builder.setTextSize(15);
                                             toolTip.show(builder.build());
-                                            scaleY(forget_pass,0,300,new AccelerateDecelerateInterpolator());
                                             new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(email);}},4000);
                                             new Handler().postDelayed(new Runnable() {@Override public void run() {
                                                 nextLoading(false);setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
@@ -856,23 +856,28 @@ public class login extends AppCompatActivity
         }
         else if(logs==5)
         {
-            FirebaseAuth.getInstance().getCurrentUser().updatePassword(con_pass.getText().toString())
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                String fName=account.getGivenName(),lName=account.getFamilyName();
-                                try {fName=fName.substring(0,fName.indexOf(" "));}catch (Exception e){}
-                                try {lName=lName.substring(0,lName.indexOf(" "));} catch (Exception e){}
-                                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                        .setPhotoUri(account.getPhotoUrl())
-                                        .setDisplayName(fName+" "+lName).build();
-                                auth.getCurrentUser().updateProfile(profileUpdates);
-                                upload_data(new user_details(fName,lName,"",""));
-                                email_reset.performClick();nextLoading(true);signin.setText("✓");
-                            } else {}
-                        }
-                    });
+            toolTip.findAndDismiss(email);
+            try
+            {
+                FirebaseAuth.getInstance().getCurrentUser().updatePassword(con_pass.getText().toString())
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    String fName=account.getGivenName(),lName=account.getFamilyName();
+                                    try {fName=fName.substring(0,fName.indexOf(" "));}catch (Exception e){}
+                                    try {lName=lName.substring(0,lName.indexOf(" "));} catch (Exception e){}
+                                    String picURL=account.getPhotoUrl().toString().substring(0,account.getPhotoUrl().toString().indexOf("s96-c/photo.jpg"));
+                                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                            .setPhotoUri(Uri.parse(picURL+"s400-c/photo.jpg"))
+                                            .setDisplayName(fName+" "+lName).build();
+                                    auth.getCurrentUser().updateProfile(profileUpdates);newPageAnim();
+                                    upload_data(new user_details(fName,lName,"",""));
+                                } else {}
+                            }
+                        });
+            }
+            catch (Exception e){}
         }
 
         profile_url=new File(new ContextWrapper(getApplicationContext()).getDir("imageDir", Context.MODE_PRIVATE),"profile.jpg").getAbsolutePath();
@@ -944,7 +949,7 @@ public class login extends AppCompatActivity
         SharedPreferences.Editor prefsEditor = pref.edit();
         prefsEditor.putString(auth.getCurrentUser().getUid()+"user_details", new Gson().toJson(user));
         prefsEditor.commit();
-        new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},2000);
+        new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},2500);
     }
     public void closeCam()
     {
@@ -1225,50 +1230,52 @@ public class login extends AppCompatActivity
                                         fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
                                             @Override
                                             public void onDataChange(DataSnapshot dataSnapshot) {
-                                                scaleX(social_google_logo,50,100,new AccelerateDecelerateInterpolator());
-                                                userD=dataSnapshot.getValue(user_details.class);
-                                                try
+                                                if(logs!=5)
                                                 {
-                                                    userD.getfname();
-                                                    storageReference.child("UserDP/"+auth.getCurrentUser().getUid()+".jpg").getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                                        @Override
-                                                        public void onSuccess(Uri uri) {
-                                                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                                                    .setDisplayName(userD.getfname()+" "+userD.getlname())
-                                                                    .setPhotoUri(uri).build();
-                                                            auth.getCurrentUser().updateProfile(profileUpdates);newPageAnim();
-                                                            new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},2500);
-                                                        }
-                                                    }).addOnFailureListener(new OnFailureListener() {
-                                                        @Override
-                                                        public void onFailure(@NonNull Exception exception) {
-                                                            String picURL=account.getPhotoUrl().toString().substring(0,account.getPhotoUrl().toString().indexOf("s96-c/photo.jpg"));
-                                                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                                                    .setDisplayName(userD.getfname()+" "+userD.getlname())
-                                                                    .setPhotoUri(Uri.parse(picURL+"s500-c/photo.jpg")).build();
-                                                            auth.getCurrentUser().updateProfile(profileUpdates);newPageAnim();
-                                                            new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},2500);
-                                                        }
-                                                    });
-                                                }
-                                                catch (NullPointerException e)
-                                                {
-                                                    sign_dialog.setVisibility(View.GONE);social_trigger.setVisibility(View.VISIBLE);
-                                                    email_reset.performClick();email.setText(account.getEmail());social_trigger.setVisibility(View.GONE);
-                                                    scaleY(socialPane,0,300,new AccelerateDecelerateInterpolator());socialOn=false;
-                                                    pass.setVisibility(View.VISIBLE);con_pass.setVisibility(View.VISIBLE);buttonText=getString(R.string.signup);
-                                                    scaleY(login_div,148,300,new AccelerateDecelerateInterpolator());pass.requestFocus();
-                                                    pass.setEnabled(true);nextLoading(false);setButtonEnabled(false);email.setEnabled(false);logs=5;
-                                                    new Handler().postDelayed(new Runnable() {@Override public void run()
+                                                    userD=dataSnapshot.getValue(user_details.class);
+                                                    try
                                                     {
-                                                        ToolTip.Builder builder = new ToolTip.Builder(login.this, email,parentPanel, getString(R.string.add_password), ToolTip.POSITION_ABOVE);
-                                                        builder.setBackgroundColor(getColor(R.color.profile));
-                                                        builder.setTextColor(getColor(R.color.profile_text));
-                                                        builder.setGravity(ToolTip.GRAVITY_CENTER);builder.setTextSize(15);
-                                                        toolTip.show(builder.build());
-                                                    }},500);
+                                                        userD.getfname();
+                                                        storageReference.child("UserDP/"+auth.getCurrentUser().getUid()+".jpg").getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                                            @Override
+                                                            public void onSuccess(Uri uri) {
+                                                                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                                                        .setDisplayName(userD.getfname()+" "+userD.getlname())
+                                                                        .setPhotoUri(uri).build();
+                                                                auth.getCurrentUser().updateProfile(profileUpdates);newPageAnim();
+                                                                new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},2500);
+                                                            }
+                                                        }).addOnFailureListener(new OnFailureListener() {
+                                                            @Override
+                                                            public void onFailure(@NonNull Exception exception) {
+                                                                String picURL=account.getPhotoUrl().toString().substring(0,account.getPhotoUrl().toString().indexOf("s96-c/photo.jpg"));
+                                                                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                                                        .setDisplayName(userD.getfname()+" "+userD.getlname())
+                                                                        .setPhotoUri(Uri.parse(picURL+"s400-c/photo.jpg")).build();
+                                                                auth.getCurrentUser().updateProfile(profileUpdates);newPageAnim();
+                                                                new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},2500);
+                                                            }
+                                                        });
+                                                    }
+                                                    catch (NullPointerException e)
+                                                    {
+                                                        sign_dialog.setVisibility(View.GONE);social_trigger.setVisibility(View.VISIBLE);
+                                                        email_reset.performClick();email.setText(account.getEmail());social_trigger.setVisibility(View.GONE);
+                                                        scaleY(socialPane,0,200,new AccelerateDecelerateInterpolator());socialOn=false;
+                                                        pass.setVisibility(View.VISIBLE);con_pass.setVisibility(View.VISIBLE);buttonText=getString(R.string.signup);
+                                                        scaleY(login_div,148,300,new AccelerateDecelerateInterpolator());pass.requestFocus();
+                                                        pass.setEnabled(true);nextLoading(false);setButtonEnabled(false);email.setEnabled(false);logs=5;
+                                                        new Handler().postDelayed(new Runnable() {@Override public void run()
+                                                        {
+                                                            ToolTip.Builder builder = new ToolTip.Builder(login.this, email,parentPanel, getString(R.string.add_password), ToolTip.POSITION_ABOVE);
+                                                            builder.setBackgroundColor(getColor(R.color.profile));
+                                                            builder.setTextColor(getColor(R.color.profile_text));
+                                                            builder.setGravity(ToolTip.GRAVITY_CENTER);builder.setTextSize(15);
+                                                            toolTip.show(builder.build());
+                                                        }},500);
+                                                    }
+                                                    catch (Exception e) {Toast.makeText(login.this, e.toString(), Toast.LENGTH_SHORT).show();}
                                                 }
-                                                catch (Exception e) {Toast.makeText(login.this, e.toString(), Toast.LENGTH_SHORT).show();}
                                             }
                                             @Override
                                             public void onCancelled(DatabaseError error) {}
@@ -1289,7 +1296,8 @@ public class login extends AppCompatActivity
     }
     public void newPageAnim()
     {
-        scaleY(login_div,00,300,new AccelerateDecelerateInterpolator());
+        scaleY(socialPane,0,300,new AccelerateDecelerateInterpolator());
+        scaleY(login_div,0,300,new AccelerateDecelerateInterpolator());
         anim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_grow);
         Animation anima = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_hide);
         logo_div.setVisibility(View.VISIBLE);logo_div.startAnimation(anima);ico_splash.startAnimation(anim);

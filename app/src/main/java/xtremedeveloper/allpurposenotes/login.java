@@ -112,7 +112,7 @@ import static android.R.attr.maxWidth;
 public class login extends AppCompatActivity
 {
     TextView signin,gender_text,verify_l1,verify_l2,verify_l4;
-    ImageView ico_splash,dob_chooser,gender_swap,click,flash,camera_flip,social_google_logo,social_facebook_logo;
+    ImageView ico_splash,dob_chooser,gender_swap,click,flash,camera_flip,social_google_logo,social_facebook_logo,sign_dialog_close;
     RelativeLayout login_div,logo_div,splash_cover,email_reset,sign_dialog,forget_pass,gender,permission_camera;
     RelativeLayout camera_pane,parentPanel,click_pane,galary,social_trigger,social_google,social_facebook,socialPane;
     Animation anim;
@@ -584,6 +584,13 @@ public class login extends AppCompatActivity
             }
         });
 
+        sign_dialog_close=findViewById(R.id.sign_dialog_close);
+        sign_dialog_close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sign_dialog.setVisibility(View.GONE);
+            }
+        });
         nextLoad=findViewById(R.id.nextLoad);
         signin=findViewById(R.id.signin);setButtonEnabled(false);
         signin.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/vdub.ttf"));
@@ -681,7 +688,7 @@ public class login extends AppCompatActivity
                 Animation anima = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_reveal);
                 logo_div.setVisibility(View.VISIBLE);logo_div.startAnimation(anima);ico_splash.startAnimation(anim);
                 new Handler().postDelayed(new Runnable()
-                {@Override public void run() {scaleY(login_div,48,300,new AccelerateDecelerateInterpolator());}},800);
+                {@Override public void run() {scaleY(login_div,48,300,new AccelerateDecelerateInterpolator());social_trigger.setVisibility(View.VISIBLE);}},800);
             }
         },1500);
     }
@@ -854,15 +861,16 @@ public class login extends AppCompatActivity
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
-                                String fName=account.getGivenName().substring(0,account.getGivenName().indexOf(""));
-                                String lName=account.getGivenName().substring(0,account.getGivenName().indexOf(""));
-                                upload_data(new user_details(account.getGivenName(),account.getFamilyName(),"HE",""));
+                                String fName=account.getGivenName(),lName=account.getFamilyName();
+                                try {fName=fName.substring(0,fName.indexOf(" "));}catch (Exception e){}
+                                try {lName=lName.substring(0,lName.indexOf(" "));} catch (Exception e){}
                                 UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                        .setDisplayName(fName+" "+lName)
-                                        .setPhotoUri(FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl()).build();
+                                        .setPhotoUri(account.getPhotoUrl())
+                                        .setDisplayName(fName+" "+lName).build();
                                 auth.getCurrentUser().updateProfile(profileUpdates);
-                            } else {
-                            }
+                                upload_data(new user_details(fName,lName,"",""));
+                                email_reset.performClick();nextLoading(true);signin.setText("✓");
+                            } else {}
                         }
                     });
         }
@@ -1201,6 +1209,7 @@ public class login extends AppCompatActivity
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(intent);
             if (result.isSuccess())
             {
+                sign_dialog.setVisibility(View.VISIBLE);social_trigger.setVisibility(View.GONE);
                 Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(intent);
                 try
                 {
@@ -1227,17 +1236,24 @@ public class login extends AppCompatActivity
                                                             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                                                                     .setDisplayName(userD.getfname()+" "+userD.getlname())
                                                                     .setPhotoUri(uri).build();
-                                                            auth.getCurrentUser().updateProfile(profileUpdates);
+                                                            auth.getCurrentUser().updateProfile(profileUpdates);newPageAnim();
+                                                            new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},2500);
                                                         }
                                                     }).addOnFailureListener(new OnFailureListener() {
                                                         @Override
-                                                        public void onFailure(@NonNull Exception exception) {}
+                                                        public void onFailure(@NonNull Exception exception) {
+                                                            String picURL=account.getPhotoUrl().toString().substring(0,account.getPhotoUrl().toString().indexOf("s96-c/photo.jpg"));
+                                                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                                                    .setDisplayName(userD.getfname()+" "+userD.getlname())
+                                                                    .setPhotoUri(Uri.parse(picURL+"s500-c/photo.jpg")).build();
+                                                            auth.getCurrentUser().updateProfile(profileUpdates);newPageAnim();
+                                                            new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},2500);
+                                                        }
                                                     });
-                                                    new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},1500);
                                                 }
                                                 catch (NullPointerException e)
                                                 {
-
+                                                    sign_dialog.setVisibility(View.GONE);social_trigger.setVisibility(View.VISIBLE);
                                                     email_reset.performClick();email.setText(account.getEmail());social_trigger.setVisibility(View.GONE);
                                                     scaleY(socialPane,0,300,new AccelerateDecelerateInterpolator());socialOn=false;
                                                     pass.setVisibility(View.VISIBLE);con_pass.setVisibility(View.VISIBLE);buttonText=getString(R.string.signup);
@@ -1251,7 +1267,6 @@ public class login extends AppCompatActivity
                                                         builder.setGravity(ToolTip.GRAVITY_CENTER);builder.setTextSize(15);
                                                         toolTip.show(builder.build());
                                                     }},500);
-                                                    //upload_data(new user_details(account.getGivenName(),account.getFamilyName(),account.,dob.getText().toString()));
                                                 }
                                                 catch (Exception e) {Toast.makeText(login.this, e.toString(), Toast.LENGTH_SHORT).show();}
                                             }
@@ -1271,6 +1286,13 @@ public class login extends AppCompatActivity
             }
             else {scaleX(social_google_logo,50,100,new AccelerateDecelerateInterpolator());}
         }
+    }
+    public void newPageAnim()
+    {
+        scaleY(login_div,00,300,new AccelerateDecelerateInterpolator());
+        anim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_grow);
+        Animation anima = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_hide);
+        logo_div.setVisibility(View.VISIBLE);logo_div.startAnimation(anima);ico_splash.startAnimation(anim);
     }
     public String getRealPathFromURI(Context context, Uri contentUri) {
         Cursor cursor = null;

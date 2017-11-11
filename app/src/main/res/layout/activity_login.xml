@@ -51,6 +51,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:visibility="gone"
             android:id="@+id/social_trigger"/>
         <RelativeLayout
             android:layout_width="match_parent"
@@ -409,6 +410,13 @@
                 <ProgressBar
                     android:layout_width="35dp"
                     android:layout_height="35dp"
+                    android:layout_centerInParent="true"/>
+                <ImageView
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:id="@+id/sign_dialog_close"
+                    android:src="@drawable/close"
+                    android:padding="13dp"
                     android:layout_centerInParent="true"/>
             </RelativeLayout>
 

@@ -76,6 +76,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
@@ -261,13 +262,13 @@ public class login extends AppCompatActivity
                 {
                     pass.setCompoundDrawablesWithIntrinsicBounds(R.drawable.password_ok,0,0,0);
                     if(logs==1){setButtonEnabled(true);}
-                    else if(logs==2){con_pass.setEnabled(true);}
+                    else if(logs==2 || logs==5){con_pass.setEnabled(true);}
                 }
                 else
                 {
                     pass.setCompoundDrawablesWithIntrinsicBounds(R.drawable.password_nok,0,0,0);
                     if(logs==1){setButtonEnabled(false);}
-                    else if(logs==2){con_pass.setText("");con_pass.setEnabled(false);}
+                    else if(logs==2 || logs==5){con_pass.setText("");con_pass.setEnabled(false);}
                 }
             }
         });
@@ -316,7 +317,7 @@ public class login extends AppCompatActivity
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count)
             {
-                if(logs==2)
+                if(logs==2 || logs==5)
                 {
                     if(con_pass.getText().toString().equals(pass.getText().toString()) && con_pass.getText().length()>=6)
                     {con_pass.setCompoundDrawablesWithIntrinsicBounds(R.drawable.con_password_ok,0,0,0);setButtonEnabled(true);}
@@ -691,7 +692,7 @@ public class login extends AppCompatActivity
         if(socialOn)
         {
             scaleY(socialPane,0,300,new AccelerateDecelerateInterpolator());
-            scaleY(login_div,48,300,new AccelerateDecelerateInterpolator());
+            scaleY(login_div,48,300,new AccelerateDecelerateInterpolator());socialOn=false;
         }
         if(logs==0)
         {
@@ -746,7 +747,7 @@ public class login extends AppCompatActivity
                                         final user_details user=dataSnapshot.getValue(user_details.class);
                                         try
                                         {
-                                            user.getgender();email_reset.performClick();
+                                            user.getfname();email_reset.performClick();
                                             new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},1500);
                                             signin.setText("✓");
                                         }
@@ -755,9 +756,9 @@ public class login extends AppCompatActivity
                                             ToolTip.Builder builder = new ToolTip.Builder(login.this, email,parentPanel, getString(R.string.complete_signUp), ToolTip.POSITION_ABOVE);
                                             builder.setBackgroundColor(getColor(R.color.profile));
                                             builder.setTextColor(getColor(R.color.profile_text));
-                                            builder.setGravity(ToolTip.GRAVITY_CENTER);
-                                            builder.setTextSize(15);
-                                            toolTip.show(builder.build());scaleY(forget_pass,0,300,new AccelerateDecelerateInterpolator());
+                                            builder.setGravity(ToolTip.GRAVITY_CENTER);builder.setTextSize(15);
+                                            toolTip.show(builder.build());
+                                            scaleY(forget_pass,0,300,new AccelerateDecelerateInterpolator());
                                             new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(email);}},4000);
                                             new Handler().postDelayed(new Runnable() {@Override public void run() {
                                                 nextLoading(false);setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
@@ -845,6 +846,25 @@ public class login extends AppCompatActivity
         else if(logs==4)
         {
             completeSignUp(profile_dp);
+        }
+        else if(logs==5)
+        {
+            FirebaseAuth.getInstance().getCurrentUser().updatePassword(con_pass.getText().toString())
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                String fName=account.getGivenName().substring(0,account.getGivenName().indexOf(""));
+                                String lName=account.getGivenName().substring(0,account.getGivenName().indexOf(""));
+                                upload_data(new user_details(account.getGivenName(),account.getFamilyName(),"HE",""));
+                                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                        .setDisplayName(fName+" "+lName)
+                                        .setPhotoUri(FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl()).build();
+                                auth.getCurrentUser().updateProfile(profileUpdates);
+                            } else {
+                            }
+                        }
+                    });
         }
 
         profile_url=new File(new ContextWrapper(getApplicationContext()).getDir("imageDir", Context.MODE_PRIVATE),"profile.jpg").getAbsolutePath();
@@ -1192,7 +1212,6 @@ public class login extends AppCompatActivity
                                 public void onComplete(@NonNull Task<AuthResult> task) {
                                     if (task.isSuccessful())
                                     {
-                                        Toast.makeText(login.this, "Success", Toast.LENGTH_SHORT).show();
                                         fdb= FirebaseDatabase.getInstance().getReference("user_details");
                                         fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
                                             @Override
@@ -1201,7 +1220,7 @@ public class login extends AppCompatActivity
                                                 userD=dataSnapshot.getValue(user_details.class);
                                                 try
                                                 {
-                                                    Toast.makeText(login.this, userD.getfname(), Toast.LENGTH_SHORT).show();
+                                                    userD.getfname();
                                                     storageReference.child("UserDP/"+auth.getCurrentUser().getUid()+".jpg").getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                                         @Override
                                                         public void onSuccess(Uri uri) {
@@ -1215,17 +1234,23 @@ public class login extends AppCompatActivity
                                                         public void onFailure(@NonNull Exception exception) {}
                                                     });
                                                     new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},1500);
-                                                    signin.setText("✓");
                                                 }
                                                 catch (NullPointerException e)
                                                 {
 
-                                                    email_reset.performClick();email.setText(account.getEmail());
-                                                    scaleY(socialPane,0,300,new AccelerateDecelerateInterpolator());
-                                                    pass.setVisibility(View.VISIBLE);con_pass.setVisibility(View.VISIBLE);scaleY(login_div,148,300,new AccelerateDecelerateInterpolator());
-                                                    email_reset.setVisibility(View.VISIBLE);buttonText=getString(R.string.signup);pass.requestFocus();
-                                                    pass.setEnabled(true);nextLoading(false);setButtonEnabled(false);logs=2;
-
+                                                    email_reset.performClick();email.setText(account.getEmail());social_trigger.setVisibility(View.GONE);
+                                                    scaleY(socialPane,0,300,new AccelerateDecelerateInterpolator());socialOn=false;
+                                                    pass.setVisibility(View.VISIBLE);con_pass.setVisibility(View.VISIBLE);buttonText=getString(R.string.signup);
+                                                    scaleY(login_div,148,300,new AccelerateDecelerateInterpolator());pass.requestFocus();
+                                                    pass.setEnabled(true);nextLoading(false);setButtonEnabled(false);email.setEnabled(false);logs=5;
+                                                    new Handler().postDelayed(new Runnable() {@Override public void run()
+                                                    {
+                                                        ToolTip.Builder builder = new ToolTip.Builder(login.this, email,parentPanel, getString(R.string.add_password), ToolTip.POSITION_ABOVE);
+                                                        builder.setBackgroundColor(getColor(R.color.profile));
+                                                        builder.setTextColor(getColor(R.color.profile_text));
+                                                        builder.setGravity(ToolTip.GRAVITY_CENTER);builder.setTextSize(15);
+                                                        toolTip.show(builder.build());
+                                                    }},500);
                                                     //upload_data(new user_details(account.getGivenName(),account.getFamilyName(),account.,dob.getText().toString()));
                                                 }
                                                 catch (Exception e) {Toast.makeText(login.this, e.toString(), Toast.LENGTH_SHORT).show();}
@@ -1242,8 +1267,6 @@ public class login extends AppCompatActivity
                 }
                 catch (ApiException e) {}
                 catch (Exception e){
-                    email_reset.performClick();scaleY(socialPane,0,300,new AccelerateDecelerateInterpolator());
-                    email.setText(account.getEmail());performSignIn();
                 }
             }
             else {scaleX(social_google_logo,50,100,new AccelerateDecelerateInterpolator());}

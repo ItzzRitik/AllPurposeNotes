@@ -33,4 +33,5 @@
     <string name="didnt_recieve">Didn\'t Receive a mail?, Resend !</string>
     <string name="error_resend">Error Sending Verification Mail</string>
     <string name="add_notes">Add Notes Option</string>
+    <string name="add_password">Account created successfully\nAdd password for better security</string>
 </resources>

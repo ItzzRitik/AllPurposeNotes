@@ -8,7 +8,9 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -31,6 +33,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -59,9 +62,11 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
+import com.facebook.Profile;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.flurgle.camerakit.CameraKit;
@@ -83,6 +88,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.EmailAuthProvider;
+import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
@@ -107,6 +113,8 @@ import com.yalantis.ucrop.UCrop;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
@@ -644,11 +652,15 @@ public class login extends AppCompatActivity
         fb_activate.setReadPermissions("email", "public_profile");
         fb_activate.registerCallback(fbCall, new FacebookCallback<LoginResult>() {
             @Override
-            public void onSuccess(LoginResult loginResult) {}
+            public void onSuccess(LoginResult loginResult)
+            {
+                scaleX(social_facebook_logo,50,150,new AccelerateInterpolator());
+                handleFacebookAccessToken(loginResult.getAccessToken());
+            }
             @Override
-            public void onCancel() {}
+            public void onCancel() {scaleX(social_facebook_logo,50,150,new AccelerateInterpolator());}
             @Override
-            public void onError(FacebookException error) {}
+            public void onError(FacebookException error) {scaleX(social_facebook_logo,50,150,new AccelerateInterpolator());}
         });
         social_facebook=findViewById(R.id.social_facebook);
         social_facebook_logo=findViewById(R.id.social_facebook_logo);
@@ -1194,6 +1206,7 @@ public class login extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultcode, Intent intent) {
         super.onActivityResult(requestCode, resultcode, intent);
+        fbCall.onActivityResult(requestCode, resultcode, intent);
         if (requestCode == 1 && resultcode == RESULT_OK) {
             UCrop.of(intent.getData(),Uri.parse(profile_url)).withOptions(options).withAspectRatio(1,1)
                     .withMaxResultSize(maxWidth, maxHeight).start(login.this);
@@ -1304,12 +1317,25 @@ public class login extends AppCompatActivity
                             });
 
                 }
-                catch (ApiException e) {}
                 catch (Exception e){
                 }
             }
             else {scaleX(social_google_logo,50,100,new AccelerateDecelerateInterpolator());}
         }
+    }
+    private void handleFacebookAccessToken(final AccessToken token) {
+        AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
+        auth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(login.this, "Done", Toast.LENGTH_SHORT).show();
+                        } else {
+                            email.setText(task.getException().toString());
+                        }
+                    }
+                });
     }
     public void newPageAnim()
     {

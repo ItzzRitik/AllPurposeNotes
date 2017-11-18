@@ -30,6 +30,7 @@ dependencies {
     compile 'com.android.support:design:26.1.0'
     compile 'com.sdsmdg.kd:trianglify:1.0.0'
     compile 'com.mikhaellopez:circularimageview:3.0.2'
+    compile 'com.facebook.android:facebook-login:4.28.0'
     compile 'com.google.firebase:firebase-storage:11.6.0'
     compile 'com.google.firebase:firebase-auth:11.6.0'
     compile 'com.google.firebase:firebase-database:11.6.0'

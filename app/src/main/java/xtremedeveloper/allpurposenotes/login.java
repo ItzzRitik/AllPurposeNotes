@@ -32,6 +32,7 @@ import android.text.TextWatcher;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -58,6 +59,11 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.flurgle.camerakit.CameraKit;
 import com.flurgle.camerakit.CameraListener;
 import com.flurgle.camerakit.CameraView;
@@ -123,6 +129,7 @@ public class login extends AppCompatActivity
     FirebaseAuth auth;
     GoogleSignInOptions gso;
     StorageReference storageReference;
+    CallbackManager fbCall;
     GoogleApiClient gso_client;
     GoogleSignInAccount account;
     DatabaseReference fdb;
@@ -139,6 +146,7 @@ public class login extends AppCompatActivity
     SharedPreferences pref;
     String buttonText="";
     Point screenSize;
+    LoginButton fb_activate;
     private float social_Y;
     int logs;
     user_details userD;
@@ -631,18 +639,27 @@ public class login extends AppCompatActivity
 
             }
         });
+        fbCall = CallbackManager.Factory.create();
+        fb_activate=findViewById(R.id.fb_activate);
+        fb_activate.setReadPermissions("email", "public_profile");
+        fb_activate.registerCallback(fbCall, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {}
+            @Override
+            public void onCancel() {}
+            @Override
+            public void onError(FacebookException error) {}
+        });
         social_facebook=findViewById(R.id.social_facebook);
         social_facebook_logo=findViewById(R.id.social_facebook_logo);
         social_facebook.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 scaleX(social_facebook_logo,(int)pxtodp(social_facebook.getWidth()),150,new AccelerateInterpolator());
-                new Handler().postDelayed(new Runnable() {@Override public void run() {
-                    Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(gso_client);
-                    startActivityForResult(signInIntent,2);
-                }},50);
+                fb_activate.performClick();
             }
         });
+
         socialPane=findViewById(R.id.socialPane);
         social_trigger=findViewById(R.id.social_trigger);
         social_trigger.setOnTouchListener(new View.OnTouchListener() {

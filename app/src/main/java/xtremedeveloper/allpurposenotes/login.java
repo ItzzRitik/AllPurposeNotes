@@ -66,6 +66,8 @@ import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
@@ -111,8 +113,13 @@ import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
 import com.yalantis.ucrop.UCrop;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -131,7 +138,7 @@ public class login extends AppCompatActivity
     RelativeLayout camera_pane,parentPanel,click_pane,galary,social_trigger,social_google,social_facebook,socialPane;
     Animation anim;
     boolean isDP_added =false,camStarted=false,camOn=false,galaryOn=false,isflash=false,isBack=false,profile_lp=false;
-    boolean loginStarted=false,socialOn=false;
+    boolean loginStarted=false,socialOn=false,fbVerify=false;
     EditText email,pass,con_pass,f_name,l_name,dob;
     TrianglifyView backG;
     FirebaseAuth auth;
@@ -158,6 +165,8 @@ public class login extends AppCompatActivity
     private float social_Y;
     int logs;
     user_details userD;
+    Bundle fbData;
+    AuthCredential FBcredential;
     @Override
     protected void onResume() {
         super.onResume();
@@ -744,14 +753,36 @@ public class login extends AppCompatActivity
                                     catch(FirebaseAuthInvalidCredentialsException e)
                                     {
                                         pass.setVisibility(View.VISIBLE);con_pass.setVisibility(View.GONE);scaleY(login_div,98,300,new AccelerateDecelerateInterpolator());
-                                        email_reset.setVisibility(View.VISIBLE);buttonText=getString(R.string.signin);pass.requestFocus();
-                                        pass.setEnabled(true);nextLoading(false);setButtonEnabled(false);scaleY(forget_pass,22,300,new OvershootInterpolator());logs=1;
+                                        email_reset.setVisibility(View.VISIBLE);buttonText=getString(R.string.signin);pass.requestFocus();logs=1;
+                                        pass.setEnabled(true);nextLoading(false);setButtonEnabled(false);scaleY(forget_pass,22,300,new OvershootInterpolator());
+                                        if(fbVerify)
+                                        {
+                                            new Handler().postDelayed(new Runnable() {@Override public void run()
+                                            {
+                                                ToolTip.Builder builder = new ToolTip.Builder(login.this, forget_pass,parentPanel, getString(R.string.fb_verify), ToolTip.POSITION_ABOVE);
+                                                builder.setBackgroundColor(getColor(R.color.profile));
+                                                builder.setTextColor(getColor(R.color.profile_text));
+                                                builder.setGravity(ToolTip.GRAVITY_CENTER);builder.setTextSize(15);
+                                                toolTip.show(builder.build());
+                                            }},500);
+                                        }
                                     }
                                     catch (FirebaseAuthInvalidUserException e)
                                     {
                                         pass.setVisibility(View.VISIBLE);con_pass.setVisibility(View.VISIBLE);scaleY(login_div,148,300,new AccelerateDecelerateInterpolator());
                                         email_reset.setVisibility(View.VISIBLE);buttonText=getString(R.string.signup);pass.requestFocus();
                                         pass.setEnabled(true);nextLoading(false);setButtonEnabled(false);logs=2;
+                                        if(fbVerify)
+                                        {
+                                            new Handler().postDelayed(new Runnable() {@Override public void run()
+                                            {
+                                                ToolTip.Builder builder = new ToolTip.Builder(login.this, forget_pass,parentPanel, getString(R.string.add_password), ToolTip.POSITION_ABOVE);
+                                                builder.setBackgroundColor(getColor(R.color.profile));
+                                                builder.setTextColor(getColor(R.color.profile_text));
+                                                builder.setGravity(ToolTip.GRAVITY_CENTER);builder.setTextSize(15);
+                                                toolTip.show(builder.build());
+                                            }},500);
+                                        }
                                     }
                                     catch (Exception e) {
                                         Toast.makeText(login.this,getString(R.string.error), Toast.LENGTH_SHORT).show();
@@ -785,8 +816,26 @@ public class login extends AppCompatActivity
                                         scaleY(forget_pass,0,300,new AccelerateDecelerateInterpolator());
                                         try
                                         {
-                                            user.getfname();newPageAnim();
-                                            new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},1500);
+                                            user.getfname();
+                                            if(!fbVerify)
+                                            {
+                                                newPageAnim();
+                                                new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this, Home.class));finish();}}, 1500);
+                                            }
+                                            else
+                                            {
+                                                auth.getCurrentUser().linkWithCredential(FBcredential)
+                                                        .addOnCompleteListener(login.this, new OnCompleteListener<AuthResult>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                                                if (task.isSuccessful()) {
+                                                                    Toast.makeText(login.this, "Done", Toast.LENGTH_SHORT).show();
+                                                                } else {
+                                                                    email.setText(task.getException().toString());
+                                                                }
+                                                            }
+                                                        });
+                                            }
                                         }
                                         catch (NullPointerException e)
                                         {
@@ -828,9 +877,25 @@ public class login extends AppCompatActivity
                                         .addOnCompleteListener(login.this, new OnCompleteListener<java.lang.Void>() {
                                             @Override
                                             public void onComplete(@NonNull Task task) {
-                                                nextLoading(false);setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
-                                                if (task.isSuccessful()) {sendVerification();}
-                                                else {verify_l2.setVisibility(View.VISIBLE);verify_l2.setText(getString(R.string.failed_send));}
+                                                if(!fbVerify){
+                                                    nextLoading(false);setButtonEnabled(true);verify_l4.setVisibility(View.VISIBLE);sign_dialog.setVisibility(View.GONE);
+                                                    if (task.isSuccessful()) {sendVerification();}
+                                                    else {verify_l2.setVisibility(View.VISIBLE);verify_l2.setText(getString(R.string.failed_send));}
+                                                }
+                                                else
+                                                {
+                                                    auth.getCurrentUser().linkWithCredential(FBcredential)
+                                                            .addOnCompleteListener(login.this, new OnCompleteListener<AuthResult>() {
+                                                                @Override
+                                                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                                                    if (task.isSuccessful()) {
+                                                                        Toast.makeText(login.this, "Done", Toast.LENGTH_SHORT).show();
+                                                                    } else {
+                                                                        email.setText(task.getException().toString());
+                                                                    }
+                                                                }
+                                                            });
+                                                }
                                             }
                                         });
                             }
@@ -908,7 +973,6 @@ public class login extends AppCompatActivity
             }
             catch (Exception e){}
         }
-
         profile_url=new File(new ContextWrapper(getApplicationContext()).getDir("imageDir", Context.MODE_PRIVATE),"profile.jpg").getAbsolutePath();
     }
     public void completeSignUp(Bitmap bitmap)
@@ -1323,19 +1387,130 @@ public class login extends AppCompatActivity
             else {scaleX(social_google_logo,50,100,new AccelerateDecelerateInterpolator());}
         }
     }
-    private void handleFacebookAccessToken(final AccessToken token) {
-        AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
-        auth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+    private void handleFacebookAccessToken(final AccessToken token)
+    {
+        FBcredential = FacebookAuthProvider.getCredential(token.getToken());
+        auth.signInWithCredential(FBcredential)
+                .addOnCompleteListener(login.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            Toast.makeText(login.this, "Done", Toast.LENGTH_SHORT).show();
-                        } else {
-                            email.setText(task.getException().toString());
+                        if (task.isSuccessful())
+                        {
+                            GraphRequest request = GraphRequest.newMeRequest(token, new GraphRequest.GraphJSONObjectCallback() {
+                                @Override
+                                public void onCompleted(JSONObject object, GraphResponse response) {}
+                            });
+                            Bundle parameters = new Bundle();
+                            parameters.putString("fields", "id, first_name, last_name, email,gender, birthday");
+                            request.setParameters(parameters);
+                            request.executeAsync();
+                            
+                            fdb= FirebaseDatabase.getInstance().getReference("user_details");
+                            fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    if(logs!=5)
+                                    {
+                                        userD=dataSnapshot.getValue(user_details.class);
+                                        try
+                                        {
+                                            userD.getfname();
+                                            storageReference.child("UserDP/"+auth.getCurrentUser().getUid()+".jpg").getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                                @Override
+                                                public void onSuccess(Uri uri) {
+                                                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                                            .setDisplayName(userD.getfname()+" "+userD.getlname())
+                                                            .setPhotoUri(uri).build();
+                                                    auth.getCurrentUser().updateProfile(profileUpdates);newPageAnim();
+                                                    new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},2500);
+                                                }
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception exception) {
+                                                    String picURL=account.getPhotoUrl().toString().substring(0,account.getPhotoUrl().toString().indexOf("s96-c/photo.jpg"));
+                                                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                                            .setDisplayName(userD.getfname()+" "+userD.getlname())
+                                                            .setPhotoUri(Uri.parse(picURL+"s400-c/photo.jpg")).build();
+                                                    auth.getCurrentUser().updateProfile(profileUpdates);newPageAnim();
+                                                    new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this,Home.class));finish();}},2500);
+                                                }
+                                            });
+                                        }
+                                        catch (NullPointerException e)
+                                        {
+                                            sign_dialog.setVisibility(View.GONE);social_trigger.setVisibility(View.VISIBLE);
+                                            email_reset.performClick();email.setText(account.getEmail());social_trigger.setVisibility(View.GONE);
+                                            scaleY(socialPane,0,200,new AccelerateDecelerateInterpolator());socialOn=false;
+                                            pass.setVisibility(View.VISIBLE);con_pass.setVisibility(View.VISIBLE);buttonText=getString(R.string.signup);
+                                            scaleY(login_div,148,300,new AccelerateDecelerateInterpolator());pass.requestFocus();
+                                            pass.setEnabled(true);nextLoading(false);setButtonEnabled(false);email.setEnabled(false);logs=5;
+                                            new Handler().postDelayed(new Runnable() {@Override public void run()
+                                            {
+                                                ToolTip.Builder builder = new ToolTip.Builder(login.this, email,parentPanel, getString(R.string.add_password), ToolTip.POSITION_ABOVE);
+                                                builder.setBackgroundColor(getColor(R.color.profile));
+                                                builder.setTextColor(getColor(R.color.profile_text));
+                                                builder.setGravity(ToolTip.GRAVITY_CENTER);builder.setTextSize(15);
+                                                toolTip.show(builder.build());
+                                            }},500);
+                                        }
+                                        catch (Exception e) {Toast.makeText(login.this, e.toString(), Toast.LENGTH_SHORT).show();}
+                                    }
+                                }
+                                @Override
+                                public void onCancelled(DatabaseError error) {}
+                            });
+                            newPageAnim();
+                            new Handler().postDelayed(new Runnable() {@Override public void run() {startActivity(new Intent(login.this, Home.class));finish();}}, 1500);
+                        }
+                        else
+                        {
+                            GraphRequest request = GraphRequest.newMeRequest(token, new GraphRequest.GraphJSONObjectCallback() {
+                                @Override
+                                public void onCompleted(JSONObject object, GraphResponse response) {
+                                    fbData = getFacebookData(object);fbVerify=true;
+                                    sign_dialog.setVisibility(View.GONE);social_trigger.setVisibility(View.VISIBLE);
+                                    email_reset.performClick();email.setText(fbData.get("email").toString());performSignIn();
+                                }
+                            });
+                            Bundle parameters = new Bundle();
+                            parameters.putString("fields", "id, first_name, last_name, email,gender, birthday");
+                            request.setParameters(parameters);
+                            request.executeAsync();
                         }
                     }
                 });
+    }
+    private Bundle getFacebookData(JSONObject object) {
+
+        try {
+            Bundle bundle = new Bundle();
+            String id = object.getString("id");
+
+            try {
+                URL profile_pic = new URL("https://graph.facebook.com/" + id + "/picture?width=400&height=400");
+                Log.i("profile_pic", profile_pic + "");
+                bundle.putString("profile_pic", profile_pic.toString());
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+                return null;
+            }
+
+            bundle.putString("idFacebook", id);
+            if (object.has("first_name"))
+                bundle.putString("first_name", object.getString("first_name"));
+            if (object.has("last_name"))
+                bundle.putString("last_name", object.getString("last_name"));
+            if (object.has("email"))
+                bundle.putString("email", object.getString("email"));
+            if (object.has("gender"))
+                bundle.putString("gender", object.getString("gender"));
+            if (object.has("birthday"))
+                bundle.putString("birthday", object.getString("birthday"));
+            return bundle;
+        }
+        catch(JSONException e) {}
+        return null;
     }
     public void newPageAnim()
     {

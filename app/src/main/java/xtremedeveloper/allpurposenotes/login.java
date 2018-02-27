@@ -1404,7 +1404,7 @@ public class login extends AppCompatActivity
                             parameters.putString("fields", "id, first_name, last_name, email,gender, birthday");
                             request.setParameters(parameters);
                             request.executeAsync();
-                            
+
                             fdb= FirebaseDatabase.getInstance().getReference("user_details");
                             fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
                                 @Override

@@ -6,17 +6,18 @@
     xmlns:camerakit="http://schemas.android.com/apk/res-auto"
     android:background="#000"
     tools:context="xtremedeveloper.allpurposenotes.login">
-    <com.flurgle.camerakit.CameraView
+    <com.wonderkiln.camerakit.CameraView
         android:id="@+id/cam"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clickable="true"
         camerakit:ckFacing="front"
-        camerakit:ckFocus="continuous"
+        camerakit:ckFocus="tapWithMarker"
+        camerakit:ckPinchToZoom="true"
         camerakit:ckMethod="speed"
-        camerakit:ckZoom="pinch"
         camerakit:ckJpegQuality="100"
-        android:adjustViewBounds="true" />
+        android:adjustViewBounds="true"
+        android:focusable="true" />
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -28,7 +29,7 @@
             android:layout_centerHorizontal="true"
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="30dp"
-            android:contentDescription="Click"
+            android:contentDescription="@string/click"
             android:visibility="invisible"
             android:id="@+id/click"/>
         <ImageView
@@ -38,8 +39,8 @@
             android:layout_alignStart="@+id/click"
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="45dp"
-            android:layout_marginLeft="-120dp"
-            android:contentDescription="flash"
+            android:layout_marginStart="-120dp"
+            android:contentDescription="@string/flash"
             android:id="@+id/flash"/>
         <ImageView
             android:layout_width="50dp"
@@ -49,8 +50,8 @@
             android:layout_alignParentBottom="true"
             android:padding="10dp"
             android:layout_marginBottom="47dp"
-            android:layout_marginRight="-112dp"
-            android:contentDescription="camera_flip"
+            android:layout_marginEnd="-112dp"
+            android:contentDescription="@string/camera_flip"
             android:id="@+id/camera_flip"/>
         <RelativeLayout
             android:layout_width="match_parent"
@@ -76,7 +77,7 @@
                 android:id="@+id/im_sad"
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
-                android:contentDescription="I'm Sad"
+                android:contentDescription="@string/i_m_sad"
                 android:layout_marginTop="25dp"
                 android:src="@drawable/sad"/>
             <TextView

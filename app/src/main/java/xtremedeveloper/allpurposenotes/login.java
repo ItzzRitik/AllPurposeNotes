@@ -8,18 +8,15 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
-import android.icu.text.SimpleDateFormat;
+import java.text.SimpleDateFormat;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -33,8 +30,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
-import android.util.Base64;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -50,13 +45,11 @@ import android.view.animation.AnticipateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
-import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -68,12 +61,8 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
-import com.facebook.Profile;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
-import com.flurgle.camerakit.CameraKit;
-import com.flurgle.camerakit.CameraListener;
-import com.flurgle.camerakit.CameraView;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -81,7 +70,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.BooleanResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -89,12 +77,10 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
@@ -111,6 +97,13 @@ import com.sdsmdg.kd.trianglify.models.Palette;
 import com.sdsmdg.kd.trianglify.views.TrianglifyView;
 import com.tomergoldst.tooltips.ToolTip;
 import com.tomergoldst.tooltips.ToolTipsManager;
+import com.wonderkiln.camerakit.CameraKit;
+import com.wonderkiln.camerakit.CameraKitError;
+import com.wonderkiln.camerakit.CameraKitEvent;
+import com.wonderkiln.camerakit.CameraKitEventListener;
+import com.wonderkiln.camerakit.CameraKitImage;
+import com.wonderkiln.camerakit.CameraKitVideo;
+import com.wonderkiln.camerakit.CameraView;
 import com.yalantis.ucrop.UCrop;
 
 import org.json.JSONException;
@@ -120,11 +113,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static android.R.attr.maxHeight;
@@ -465,11 +457,13 @@ public class login extends AppCompatActivity
         options.setToolbarColor(ContextCompat.getColor(login.this, R.color.colorPrimary));
         options.setStatusBarColor(ContextCompat.getColor(login.this, R.color.colorPrimary));
         options.setActiveWidgetColor(ContextCompat.getColor(login.this, R.color.colorPrimary));
-        cameraView.setCameraListener(new CameraListener() {
+        cameraView.addCameraKitListener(new CameraKitEventListener() {
+            @Override public void onEvent(CameraKitEvent cameraKitEvent) {}
+            @Override public void onError(CameraKitError cameraKitError) {}
+            @Override public void onVideo(CameraKitVideo cameraKitVideo) {}
             @Override
-            public void onPictureTaken(final byte[] picture) {
-                super.onPictureTaken(picture);
-                Bitmap result = BitmapFactory.decodeByteArray(picture, 0, picture.length);
+            public void onImage(CameraKitImage cameraKitImage) {
+                Bitmap result = cameraKitImage.getBitmap();
                 if(!isBack)
                 {
                     Matrix matrix = new Matrix();
@@ -490,7 +484,7 @@ public class login extends AppCompatActivity
             public void onClick(View view) {
                 vibrate(20);
                 ActivityCompat.requestPermissions(login.this,
-                        new String[]{android.Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.RECORD_AUDIO}, 1);
+                        new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.RECORD_AUDIO}, 1);
             }
         });
         click_pane=findViewById(R.id.click_pane);
@@ -539,7 +533,7 @@ public class login extends AppCompatActivity
         });
         camera_pane=findViewById(R.id.camera_pane);
         dp_Loader= findViewById(R.id.dp_Loader);
-        dp_Loader.getIndeterminateDrawable().setColorFilter(getColor(R.color.profile_text), PorterDuff.Mode.MULTIPLY);
+        dp_Loader.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.profile_text), PorterDuff.Mode.MULTIPLY);
         profile=findViewById(R.id.profile);
         profile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -551,7 +545,7 @@ public class login extends AppCompatActivity
                     int cy=(int)(profile.getY() + profile.getHeight() / 2);
                     final Animator animator = ViewAnimationUtils.createCircularReveal(camera_pane,backG.getRight()/2,cy,0, backG.getHeight()*141/100);
                     animator.setInterpolator(new AccelerateInterpolator());animator.setDuration(500);animator.start();
-                    if (ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                    if (ContextCompat.checkSelfPermission(login.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
                             ContextCompat.checkSelfPermission(login.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED &&
                             ContextCompat.checkSelfPermission(login.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
                     {
@@ -562,15 +556,15 @@ public class login extends AppCompatActivity
                         click.setVisibility(View.VISIBLE);
                         Animation anim = AnimationUtils.loadAnimation(login.this, R.anim.click_grow);click.startAnimation(anim);
                     }},500);
-                    if(ContextCompat.checkSelfPermission(login.this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                    if(ContextCompat.checkSelfPermission(login.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
                             ContextCompat.checkSelfPermission(login.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED &&
                             ContextCompat.checkSelfPermission(login.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
                     {
                         new Handler().postDelayed(new Runnable() {@Override public void run()
                         {
                             ToolTip.Builder builder = new ToolTip.Builder(login.this, click,camera_pane, getString(R.string.open_galary), ToolTip.POSITION_ABOVE);
-                            builder.setBackgroundColor(getColor(R.color.profile));
-                            builder.setTextColor(getColor(R.color.profile_text));
+                            builder.setBackgroundColor(getResources().getColor(R.color.profile));
+                            builder.setTextColor(getResources().getColor(R.color.profile_text));
                             builder.setGravity(ToolTip.GRAVITY_CENTER);
                             builder.setTextSize(15);
                             toolTip.show(builder.build());
@@ -760,8 +754,8 @@ public class login extends AppCompatActivity
                                             new Handler().postDelayed(new Runnable() {@Override public void run()
                                             {
                                                 ToolTip.Builder builder = new ToolTip.Builder(login.this, forget_pass,parentPanel, getString(R.string.fb_verify), ToolTip.POSITION_ABOVE);
-                                                builder.setBackgroundColor(getColor(R.color.profile));
-                                                builder.setTextColor(getColor(R.color.profile_text));
+                                                builder.setBackgroundColor(getResources().getColor(R.color.profile));
+                                                builder.setTextColor(getResources().getColor(R.color.profile_text));
                                                 builder.setGravity(ToolTip.GRAVITY_CENTER);builder.setTextSize(15);
                                                 toolTip.show(builder.build());
                                             }},500);
@@ -777,8 +771,8 @@ public class login extends AppCompatActivity
                                             new Handler().postDelayed(new Runnable() {@Override public void run()
                                             {
                                                 ToolTip.Builder builder = new ToolTip.Builder(login.this, forget_pass,parentPanel, getString(R.string.add_password), ToolTip.POSITION_ABOVE);
-                                                builder.setBackgroundColor(getColor(R.color.profile));
-                                                builder.setTextColor(getColor(R.color.profile_text));
+                                                builder.setBackgroundColor(getResources().getColor(R.color.profile));
+                                                builder.setTextColor(getResources().getColor(R.color.profile_text));
                                                 builder.setGravity(ToolTip.GRAVITY_CENTER);builder.setTextSize(15);
                                                 toolTip.show(builder.build());
                                             }},500);
@@ -809,13 +803,14 @@ public class login extends AppCompatActivity
                             else
                             {
                                 fdb= FirebaseDatabase.getInstance().getReference("user_details");
-                                fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+                                fdb.child(Objects.requireNonNull(auth.getCurrentUser()).getUid()).addValueEventListener(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
                                         final user_details user=dataSnapshot.getValue(user_details.class);
                                         scaleY(forget_pass,0,300,new AccelerateDecelerateInterpolator());
                                         try
                                         {
+                                            assert user != null;
                                             user.getfname();
                                             if(!fbVerify)
                                             {
@@ -831,7 +826,7 @@ public class login extends AppCompatActivity
                                                                 if (task.isSuccessful()) {
                                                                     Toast.makeText(login.this, "Done", Toast.LENGTH_SHORT).show();
                                                                 } else {
-                                                                    email.setText(task.getException().toString());
+                                                                    email.setText(Objects.requireNonNull(task.getException()).toString());
                                                                 }
                                                             }
                                                         });
@@ -840,8 +835,8 @@ public class login extends AppCompatActivity
                                         catch (NullPointerException e)
                                         {
                                             ToolTip.Builder builder = new ToolTip.Builder(login.this, email,parentPanel, getString(R.string.complete_signUp), ToolTip.POSITION_ABOVE);
-                                            builder.setBackgroundColor(getColor(R.color.profile));
-                                            builder.setTextColor(getColor(R.color.profile_text));
+                                            builder.setBackgroundColor(getResources().getColor(R.color.profile));
+                                            builder.setTextColor(getResources().getColor(R.color.profile_text));
                                             builder.setGravity(ToolTip.GRAVITY_CENTER);builder.setTextSize(15);
                                             toolTip.show(builder.build());
                                             new Handler().postDelayed(new Runnable() {@Override public void run() {toolTip.findAndDismiss(email);}},4000);
@@ -873,7 +868,7 @@ public class login extends AppCompatActivity
                             }
                             else
                             {
-                                auth.getCurrentUser().sendEmailVerification()
+                                Objects.requireNonNull(auth.getCurrentUser()).sendEmailVerification()
                                         .addOnCompleteListener(login.this, new OnCompleteListener<java.lang.Void>() {
                                             @Override
                                             public void onComplete(@NonNull Task task) {
@@ -891,7 +886,7 @@ public class login extends AppCompatActivity
                                                                     if (task.isSuccessful()) {
                                                                         Toast.makeText(login.this, "Done", Toast.LENGTH_SHORT).show();
                                                                     } else {
-                                                                        email.setText(task.getException().toString());
+                                                                        email.setText(Objects.requireNonNull(task.getException()).toString());
                                                                     }
                                                                 }
                                                             });
@@ -913,7 +908,7 @@ public class login extends AppCompatActivity
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 nextLoading(false);
                                 if (task.isSuccessful()) {
-                                    if (auth.getCurrentUser().isEmailVerified())
+                                    if (Objects.requireNonNull(auth.getCurrentUser()).isEmailVerified())
                                     {
                                         verify_l1.setVisibility(View.GONE);verify_l2.setVisibility(View.GONE);logs=4;
                                         verify_l4.setVisibility(View.GONE);buttonText=getString(R.string.signup);nextLoading(false);
@@ -922,8 +917,8 @@ public class login extends AppCompatActivity
                                         scaleY(login_div,260,300,new AccelerateDecelerateInterpolator());
                                         new Handler().postDelayed(new Runnable() {@Override public void run() {
                                             ToolTip.Builder builder = new ToolTip.Builder(login.this, signin, login_div,getString(R.string.verify_done), ToolTip.POSITION_ABOVE);
-                                            builder.setBackgroundColor(getColor(R.color.profile));
-                                            builder.setTextColor(getColor(R.color.profile_text));
+                                            builder.setBackgroundColor(getResources().getColor(R.color.profile));
+                                            builder.setTextColor(getResources().getColor(R.color.profile_text));
                                             builder.setGravity(ToolTip.GRAVITY_CENTER);
                                             builder.setTextSize(15);
                                             toolTip.show(builder.build());
@@ -931,8 +926,8 @@ public class login extends AppCompatActivity
                                     }
                                     else {
                                         ToolTip.Builder builder = new ToolTip.Builder(login.this, signin, login_div, getString(R.string.verify_fail), ToolTip.POSITION_ABOVE);
-                                        builder.setBackgroundColor(getColor(R.color.profile));
-                                        builder.setTextColor(getColor(R.color.profile_text));
+                                        builder.setBackgroundColor(getResources().getColor(R.color.profile));
+                                        builder.setTextColor(getResources().getColor(R.color.profile_text));
                                         builder.setGravity(ToolTip.GRAVITY_CENTER);
                                         builder.setTextSize(15);
                                         toolTip.show(builder.build());
@@ -953,21 +948,25 @@ public class login extends AppCompatActivity
             toolTip.findAndDismiss(email);
             try
             {
-                FirebaseAuth.getInstance().getCurrentUser().updatePassword(con_pass.getText().toString())
+                Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).updatePassword(con_pass.getText().toString())
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if (task.isSuccessful()) {
                                     String fName=account.getGivenName(),lName=account.getFamilyName();
-                                    try {fName=fName.substring(0,fName.indexOf(" "));}catch (Exception e){}
-                                    try {lName=lName.substring(0,lName.indexOf(" "));} catch (Exception e){}
-                                    String picURL=account.getPhotoUrl().toString().substring(0,account.getPhotoUrl().toString().indexOf("s96-c/photo.jpg"));
+                                    try {
+                                        assert fName != null;
+                                        fName=fName.substring(0,fName.indexOf(" "));}catch (Exception e){}
+                                    try {
+                                        assert lName != null;
+                                        lName=lName.substring(0,lName.indexOf(" "));} catch (Exception e){}
+                                    String picURL= Objects.requireNonNull(account.getPhotoUrl()).toString().substring(0,account.getPhotoUrl().toString().indexOf("s96-c/photo.jpg"));
                                     UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                                             .setPhotoUri(Uri.parse(picURL+"s400-c/photo.jpg"))
                                             .setDisplayName(fName+" "+lName).build();
                                     auth.getCurrentUser().updateProfile(profileUpdates);newPageAnim();
                                     upload_data(new user_details(fName,lName,"",""));
-                                } else {}
+                                }
                             }
                         });
             }
@@ -1023,7 +1022,7 @@ public class login extends AppCompatActivity
         {
             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                     .setDisplayName(f_name.getText()+" "+l_name.getText()).build();
-            auth.getCurrentUser().updateProfile(profileUpdates)
+            Objects.requireNonNull(auth.getCurrentUser()).updateProfile(profileUpdates)
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
@@ -1037,7 +1036,7 @@ public class login extends AppCompatActivity
     public void upload_data(user_details user)
     {
         fdb= FirebaseDatabase.getInstance().getReference("user_details");
-        fdb.child(auth.getCurrentUser().getUid()).setValue(user);
+        fdb.child(Objects.requireNonNull(auth.getCurrentUser()).getUid()).setValue(user);
         dp_Loader.setVisibility(View.GONE);
         SharedPreferences.Editor prefsEditor = pref.edit();
         prefsEditor.putString(auth.getCurrentUser().getUid()+"user_details", new Gson().toJson(user));
@@ -1084,7 +1083,7 @@ public class login extends AppCompatActivity
     public void sendVerification()
     {
         verify_l1.setVisibility(View.VISIBLE);verify_l2.setVisibility(View.VISIBLE);
-        verify_l2.setText(auth.getCurrentUser().getEmail());
+        verify_l2.setText(Objects.requireNonNull(auth.getCurrentUser()).getEmail());
         sign_dialog.setVisibility(View.GONE);pass.setEnabled(true);
         email_reset.setVisibility(View.GONE);email.setVisibility(View.GONE);logs=3;
         pass.setVisibility(View.GONE);con_pass.setVisibility(View.GONE);
@@ -1097,8 +1096,8 @@ public class login extends AppCompatActivity
         new Handler().postDelayed(new Runnable() {@Override public void run()
         {
             ToolTip.Builder builder = new ToolTip.Builder(login.this, signin,login_div, getString(R.string.verify2), ToolTip.POSITION_ABOVE);
-            builder.setBackgroundColor(getColor(R.color.profile));
-            builder.setTextColor(getColor(R.color.profile_text));
+            builder.setBackgroundColor(getResources().getColor(R.color.profile));
+            builder.setTextColor(getResources().getColor(R.color.profile_text));
             builder.setGravity(ToolTip.GRAVITY_CENTER);
             builder.setTextSize(15);
             toolTip.show(builder.build());
@@ -1110,8 +1109,8 @@ public class login extends AppCompatActivity
                 if(!camOn)
                 {
                     ToolTip.Builder builder = new ToolTip.Builder(login.this, gender_swap,parentPanel, getString(R.string.select_gender), ToolTip.POSITION_BELOW);
-                    builder.setBackgroundColor(getColor(R.color.profile));
-                    builder.setTextColor(getColor(R.color.profile_text));
+                    builder.setBackgroundColor(getResources().getColor(R.color.profile));
+                    builder.setTextColor(getResources().getColor(R.color.profile_text));
                     builder.setGravity(ToolTip.GRAVITY_LEFT);
                     builder.setTextSize(15);
                     toolTip.show(builder.build());
@@ -1125,8 +1124,8 @@ public class login extends AppCompatActivity
                 if(!camOn)
                 {
                     ToolTip.Builder builder = new ToolTip.Builder(login.this, profile,parentPanel, getString(R.string.add_dp), ToolTip.POSITION_ABOVE);
-                    builder.setBackgroundColor(getColor(R.color.profile));
-                    builder.setTextColor(getColor(R.color.profile_text));
+                    builder.setBackgroundColor(getResources().getColor(R.color.profile));
+                    builder.setTextColor(getResources().getColor(R.color.profile_text));
                     builder.setGravity(ToolTip.GRAVITY_CENTER);
                     builder.setTextSize(15);
                     toolTip.show(builder.build());
@@ -1139,7 +1138,7 @@ public class login extends AppCompatActivity
         try
         {
             verify_l1.setVisibility(View.INVISIBLE);verify_l2.setText(getString(R.string.resend));verify_l4.setVisibility(View.INVISIBLE);
-            auth.getCurrentUser().sendEmailVerification()
+            Objects.requireNonNull(auth.getCurrentUser()).sendEmailVerification()
                     .addOnCompleteListener(login.this, new OnCompleteListener<java.lang.Void>() {
                         @Override
                         public void onComplete(@NonNull Task task) {
@@ -1226,11 +1225,13 @@ public class login extends AppCompatActivity
         if(what)
         {
             InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            assert inputMethodManager != null;
             inputMethodManager.toggleSoftInputFromWindow(view.getApplicationWindowToken(),InputMethodManager.SHOW_FORCED, 0);
         }
         else
         {
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            assert imm != null;
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
     }
@@ -1240,9 +1241,9 @@ public class login extends AppCompatActivity
     {return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, num, getResources().getDisplayMetrics());}
     public float pxtodp(float num)
     {return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, num, getResources().getDisplayMetrics());}
-    public void vibrate(int ms){((Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(ms);}
+    public void vibrate(int ms){((Vibrator) Objects.requireNonNull(this.getSystemService(Context.VIBRATOR_SERVICE))).vibrate(ms);}
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case 1: {
                 if(grantResults[0] == PackageManager.PERMISSION_GRANTED)
@@ -1255,8 +1256,8 @@ public class login extends AppCompatActivity
                         new Handler().postDelayed(new Runnable() {@Override public void run()
                         {
                             ToolTip.Builder builder = new ToolTip.Builder(login.this, click,camera_pane, getString(R.string.open_galary), ToolTip.POSITION_ABOVE);
-                            builder.setBackgroundColor(getColor(R.color.profile));
-                            builder.setTextColor(getColor(R.color.profile_text));
+                            builder.setBackgroundColor(getResources().getColor(R.color.profile));
+                            builder.setTextColor(getResources().getColor(R.color.profile_text));
                             builder.setGravity(ToolTip.GRAVITY_CENTER);
                             builder.setTextSize(15);
                             toolTip.show(builder.build());
@@ -1272,7 +1273,7 @@ public class login extends AppCompatActivity
         super.onActivityResult(requestCode, resultcode, intent);
         fbCall.onActivityResult(requestCode, resultcode, intent);
         if (requestCode == 1 && resultcode == RESULT_OK) {
-            UCrop.of(intent.getData(),Uri.parse(profile_url)).withOptions(options).withAspectRatio(1,1)
+            UCrop.of(Objects.requireNonNull(intent.getData()),Uri.parse(profile_url)).withOptions(options).withAspectRatio(1,1)
                     .withMaxResultSize(maxWidth, maxHeight).start(login.this);
         }
         if (requestCode == UCrop.REQUEST_CROP) {
@@ -1286,8 +1287,8 @@ public class login extends AppCompatActivity
                     new Handler().postDelayed(new Runnable() {@Override public void run()
                     {
                         ToolTip.Builder builder = new ToolTip.Builder(login.this, profile,parentPanel, getString(R.string.remove_pic), ToolTip.POSITION_ABOVE);
-                        builder.setBackgroundColor(getColor(R.color.profile));
-                        builder.setTextColor(getColor(R.color.profile_text));
+                        builder.setBackgroundColor(getResources().getColor(R.color.profile));
+                        builder.setTextColor(getResources().getColor(R.color.profile_text));
                         builder.setGravity(ToolTip.GRAVITY_CENTER);
                         builder.setTextSize(15);
                         toolTip.show(builder.build());vibrate(35);
@@ -1321,7 +1322,7 @@ public class login extends AppCompatActivity
                                     if (task.isSuccessful())
                                     {
                                         fdb= FirebaseDatabase.getInstance().getReference("user_details");
-                                        fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+                                        fdb.child(Objects.requireNonNull(auth.getCurrentUser()).getUid()).addValueEventListener(new ValueEventListener() {
                                             @Override
                                             public void onDataChange(DataSnapshot dataSnapshot) {
                                                 if(logs!=5)
@@ -1329,6 +1330,7 @@ public class login extends AppCompatActivity
                                                     userD=dataSnapshot.getValue(user_details.class);
                                                     try
                                                     {
+                                                        assert userD != null;
                                                         userD.getfname();
                                                         storageReference.child("UserDP/"+auth.getCurrentUser().getUid()+".jpg").getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                                             @Override
@@ -1342,7 +1344,7 @@ public class login extends AppCompatActivity
                                                         }).addOnFailureListener(new OnFailureListener() {
                                                             @Override
                                                             public void onFailure(@NonNull Exception exception) {
-                                                                String picURL=account.getPhotoUrl().toString().substring(0,account.getPhotoUrl().toString().indexOf("s96-c/photo.jpg"));
+                                                                String picURL= Objects.requireNonNull(account.getPhotoUrl()).toString().substring(0,account.getPhotoUrl().toString().indexOf("s96-c/photo.jpg"));
                                                                 UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                                                                         .setDisplayName(userD.getfname()+" "+userD.getlname())
                                                                         .setPhotoUri(Uri.parse(picURL+"s400-c/photo.jpg")).build();
@@ -1362,8 +1364,8 @@ public class login extends AppCompatActivity
                                                         new Handler().postDelayed(new Runnable() {@Override public void run()
                                                         {
                                                             ToolTip.Builder builder = new ToolTip.Builder(login.this, email,parentPanel, getString(R.string.add_password), ToolTip.POSITION_ABOVE);
-                                                            builder.setBackgroundColor(getColor(R.color.profile));
-                                                            builder.setTextColor(getColor(R.color.profile_text));
+                                                            builder.setBackgroundColor(getResources().getColor(R.color.profile));
+                                                            builder.setTextColor(getResources().getColor(R.color.profile_text));
                                                             builder.setGravity(ToolTip.GRAVITY_CENTER);builder.setTextSize(15);
                                                             toolTip.show(builder.build());
                                                         }},500);
@@ -1406,7 +1408,7 @@ public class login extends AppCompatActivity
                             request.executeAsync();
 
                             fdb= FirebaseDatabase.getInstance().getReference("user_details");
-                            fdb.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+                            fdb.child(Objects.requireNonNull(auth.getCurrentUser()).getUid()).addValueEventListener(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
                                     if(logs!=5)
@@ -1414,6 +1416,7 @@ public class login extends AppCompatActivity
                                         userD=dataSnapshot.getValue(user_details.class);
                                         try
                                         {
+                                            assert userD != null;
                                             userD.getfname();
                                             storageReference.child("UserDP/"+auth.getCurrentUser().getUid()+".jpg").getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                                 @Override
@@ -1427,7 +1430,7 @@ public class login extends AppCompatActivity
                                             }).addOnFailureListener(new OnFailureListener() {
                                                 @Override
                                                 public void onFailure(@NonNull Exception exception) {
-                                                    String picURL=account.getPhotoUrl().toString().substring(0,account.getPhotoUrl().toString().indexOf("s96-c/photo.jpg"));
+                                                    String picURL= Objects.requireNonNull(account.getPhotoUrl()).toString().substring(0,account.getPhotoUrl().toString().indexOf("s96-c/photo.jpg"));
                                                     UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                                                             .setDisplayName(userD.getfname()+" "+userD.getlname())
                                                             .setPhotoUri(Uri.parse(picURL+"s400-c/photo.jpg")).build();
@@ -1447,8 +1450,8 @@ public class login extends AppCompatActivity
                                             new Handler().postDelayed(new Runnable() {@Override public void run()
                                             {
                                                 ToolTip.Builder builder = new ToolTip.Builder(login.this, email,parentPanel, getString(R.string.add_password), ToolTip.POSITION_ABOVE);
-                                                builder.setBackgroundColor(getColor(R.color.profile));
-                                                builder.setTextColor(getColor(R.color.profile_text));
+                                                builder.setBackgroundColor(getResources().getColor(R.color.profile));
+                                                builder.setTextColor(getResources().getColor(R.color.profile_text));
                                                 builder.setGravity(ToolTip.GRAVITY_CENTER);builder.setTextSize(15);
                                                 toolTip.show(builder.build());
                                             }},500);
@@ -1469,7 +1472,7 @@ public class login extends AppCompatActivity
                                 public void onCompleted(JSONObject object, GraphResponse response) {
                                     fbData = getFacebookData(object);fbVerify=true;
                                     sign_dialog.setVisibility(View.GONE);social_trigger.setVisibility(View.VISIBLE);
-                                    email_reset.performClick();email.setText(fbData.get("email").toString());performSignIn();
+                                    email_reset.performClick();email.setText(Objects.requireNonNull(fbData.get("email")).toString());performSignIn();
                                 }
                             });
                             Bundle parameters = new Bundle();
@@ -1525,6 +1528,7 @@ public class login extends AppCompatActivity
         try {
             String[] proj = { MediaStore.Images.Media.DATA };
             cursor = context.getContentResolver().query(contentUri,  proj, null, null, null);
+            assert cursor != null;
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             cursor.moveToFirst();
             return cursor.getString(column_index);

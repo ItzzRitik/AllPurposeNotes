@@ -39,4 +39,8 @@
 
     <string name="facebook_app_id">189684868246879</string>
     <string name="fb_login_protocol_scheme">fb189684868246879</string>
+    <string name="click">Click</string>
+    <string name="flash">flash</string>
+    <string name="camera_flip">camera_flip</string>
+    <string name="i_m_sad">I\'m Sad</string>
 </resources>

@@ -1,1 +1,1 @@
-include ':app', ':javarosa-master'
+include ':app', ':javarosa-master', ':fabulous'

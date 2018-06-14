@@ -997,7 +997,7 @@ public class login extends AppCompatActivity
                         @SuppressLint("ApplySharedPref")
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            @SuppressWarnings("VisibleForTests") Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                            @SuppressWarnings("VisibleForTests") Uri downloadUrl = taskSnapshot.getUploadSessionUri();
                             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                                     .setDisplayName(f_name.getText()+" "+l_name.getText()).setPhotoUri(downloadUrl).build();
                             auth.getCurrentUser().updateProfile(profileUpdates)
